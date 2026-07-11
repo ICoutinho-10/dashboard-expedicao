@@ -1,0 +1,649 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Relatório de Expedição BYD</title>
+<style>
+:root{
+  --sol:#38bdf8;--sol-soft:#0e2a3d;
+  --sep:#fbbf24;--sep-soft:#3a2f0e;
+  --nf:#34d399;--nf-soft:#0e3327;
+  --red:#ef4444;--red-soft:#3b1111;
+  --orange:#f97316;--orange-soft:#3b2008;
+  --bg:#0a0f1e;--bg2:#0f1730;--panel:#131c38;--panel2:#1a2547;
+  --line:#26325c;--txt:#e8edfb;--txt-dim:#8b98c9;--txt-mut:#5f6d9e;
+  --radius:14px;--shadow:0 8px 24px rgba(0,0,0,.3);
+}
+body.clean{
+  --sol:#2563eb;--sol-soft:#dbeafe;
+  --sep:#d97706;--sep-soft:#fef3c7;
+  --nf:#059669;--nf-soft:#d1fae5;
+  --red:#dc2626;--red-soft:#fee2e2;
+  --orange:#ea580c;--orange-soft:#ffedd5;
+  --bg:#f0f2f5;--bg2:#e8eaef;--panel:#ffffff;--panel2:#f4f5f7;
+  --line:#dfe1e6;--txt:#1a1a2e;--txt-dim:#4a5568;--txt-mut:#94a3b8;
+  --shadow:0 4px 12px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:"Segoe UI",system-ui,-apple-system,sans-serif;font-size:13px;
+  min-height:100vh;padding:10px 16px 30px;
+  transition:background .3s,color .3s;
+}
+body:not(.clean){
+  background:radial-gradient(1200px 600px at 12% -10%,#16224a 0%,transparent 55%),
+             radial-gradient(1000px 500px at 100% 0%,#12203f 0%,transparent 50%),var(--bg);
+}
+h1,h2,h3{margin:0}.mut{color:var(--txt-mut)}
+
+.topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo-svg{height:32px;width:auto;color:var(--txt)}
+.brand h1{font-size:17px;letter-spacing:.3px}
+.brand .sub{font-size:11px;color:var(--txt-dim);margin-top:1px}
+.spacer{flex:1}
+.controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:2px}
+.field label{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--txt-mut);padding-left:2px}
+input[type=date],select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font-size:12px;outline:none}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7)}
+body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;transition:.15s;white-space:nowrap}
+.btn:hover{background:var(--panel2);border-color:#3a4a86}
+.btn.primary{background:linear-gradient(135deg,#2563eb,#0891b2);border:none;color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.small{padding:5px 9px;font-size:11px}
+.chip-presets{display:flex;gap:5px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:transparent;color:var(--txt-dim);border-radius:18px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:600;transition:.15s}
+.chip:hover{color:var(--txt);border-color:#3a4a86}
+.chip.active{background:var(--panel2);color:var(--txt);border-color:#4a5da0}
+
+.filterbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:linear-gradient(90deg,rgba(37,99,235,.08),transparent);border:1px solid var(--line);border-radius:10px;padding:7px 10px;margin-bottom:10px;min-height:36px}
+.filterbar .lbl{font-size:11px;color:var(--txt-mut);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.tag{display:inline-flex;align-items:center;gap:5px;background:var(--panel2);border:1px solid var(--line);border-radius:18px;padding:3px 5px 3px 9px;font-size:11px}
+.tag b{font-weight:600}
+.tag .x{cursor:pointer;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:var(--txt-dim);font-size:11px}
+.tag .x:hover{background:#ef4444;color:#fff}
+
+.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin-bottom:10px}
+.gc{position:relative;border-radius:10px;background:var(--panel);border:1px solid var(--line);padding:10px 12px;box-shadow:var(--shadow);overflow:hidden}
+.gc::after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px}
+.gc.c-sol::after{background:var(--sol)}.gc.c-nf::after{background:var(--nf)}.gc.c-sep::after{background:var(--sep)}.gc.c-red::after{background:var(--red)}.gc.c-orange::after{background:var(--orange)}
+.gc .gt{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--txt-mut);font-weight:700;margin-bottom:4px;white-space:nowrap}
+.gc .gv{font-size:28px;font-weight:800;line-height:1}
+.gc.c-sol .gv{color:var(--sol)}.gc.c-nf .gv{color:var(--nf)}.gc.c-sep .gv{color:var(--sep)}.gc.c-red .gv{color:var(--red)}.gc.c-orange .gv{color:var(--orange)}
+
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.kpi{position:relative;overflow:hidden;border-radius:var(--radius);background:var(--panel);border:1px solid var(--line);padding:14px 16px;box-shadow:var(--shadow)}
+.kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;border-radius:4px}
+.kpi.sol::before{background:var(--sol)}.kpi.sep::before{background:var(--sep)}.kpi.nf::before{background:var(--nf)}
+.kpi .glow{position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;filter:blur(28px);opacity:.14}
+.kpi.sol .glow{background:var(--sol)}.kpi.sep .glow{background:var(--sep)}.kpi.nf .glow{background:var(--nf)}
+.kpi .head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.kpi .dot{width:10px;height:10px;border-radius:50%}
+.kpi.sol .dot{background:var(--sol)}.kpi.sep .dot{background:var(--sep)}.kpi.nf .dot{background:var(--nf)}
+.kpi .title{font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--txt-dim);font-weight:700}
+.kpi .big{font-size:42px;font-weight:800;line-height:1;margin:4px 0 2px}
+.kpi.sol .big{color:var(--sol)}.kpi.sep .big{color:var(--sep)}.kpi.nf .big{color:var(--nf)}
+.kpi .unit{font-size:13px;color:var(--txt-dim);font-weight:600}
+.kpi .subs{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.kpi .sub{display:flex;flex-direction:column}
+.kpi .sub .v{font-size:16px;font-weight:700}
+.kpi .sub .k{font-size:10px;color:var(--txt-mut)}
+
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);min-width:0}
+.panel h3{font-size:12px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:7px;margin-bottom:1px}
+.panel .cap{font-size:10px;color:var(--txt-mut);margin-bottom:10px}
+.panel .badge{margin-left:auto;font-size:10px;color:var(--txt-dim);background:var(--panel2);padding:2px 8px;border-radius:18px;border:1px solid var(--line)}
+.hdot{width:8px;height:8px;border-radius:50%}
+.dot-sol{background:var(--sol)}.dot-sep{background:var(--sep)}.dot-nf{background:var(--nf)}
+.span3{grid-column:span 3}.span4{grid-column:span 4}.span6{grid-column:span 6}.span8{grid-column:span 8}.span12{grid-column:span 12}
+
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar{cursor:pointer;transition:opacity .18s;user-select:none}
+.bar.dim{opacity:.28}
+.bar .brow{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
+.bar .bname{color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72%}
+.bar .bval{font-weight:700}
+.bar .track{height:8px;background:rgba(255,255,255,.05);border-radius:5px;overflow:hidden}
+body.clean .bar .track{background:rgba(0,0,0,.06)}
+.bar .fill{height:100%;border-radius:5px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bar:hover .fill{filter:brightness(1.15)}
+.empty{color:var(--txt-mut);font-size:11px;padding:16px 0;text-align:center}
+
+.donut-wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.legend{display:flex;flex-direction:column;gap:6px;flex:1;min-width:100px}
+.leg{display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;transition:opacity .18s}
+.leg.dim{opacity:.3}
+.leg .sw{width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+.leg .ln{flex:1;color:var(--txt-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leg .lv{font-weight:700}
+.donut-seg{cursor:pointer;transition:opacity .18s}
+.donut-seg.dim{opacity:.28}
+
+.evo-wrap{overflow-x:auto;padding-bottom:4px}
+.ts-legend{display:flex;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+.ts-legend .li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt-dim)}
+.ts-legend .li .sw{width:10px;height:10px;border-radius:3px}
+
+.tblwrap{overflow-x:auto;max-height:320px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+th{position:sticky;top:0;background:var(--panel2);color:var(--txt-dim);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.4px;z-index:2}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+body.clean tbody tr:hover{background:rgba(0,0,0,.03)}
+.st{padding:2px 8px;border-radius:18px;font-size:10px;font-weight:700}
+.st.fin{background:var(--nf-soft);color:var(--nf)}
+.st.sep-s{background:var(--sep-soft);color:var(--sep)}
+.st.other{background:var(--panel2);color:var(--txt-dim)}
+
+#overlay{position:fixed;inset:0;background:rgba(6,10,22,.72);backdrop-filter:blur(3px);display:none;place-items:center;z-index:50}
+#overlay.on{display:grid}
+.spin{width:40px;height:40px;border:4px solid rgba(255,255,255,.15);border-top-color:var(--sol);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.olbox{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--txt-dim)}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 18px;box-shadow:var(--shadow);transition:.35s;z-index:60;font-size:12px;max-width:90vw}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#toast.err{border-color:#ef4444}
+footer{margin-top:16px;text-align:center;color:var(--txt-mut);font-size:10px}
+@media(max-width:1050px){.span3,.span4,.span6,.span8{grid-column:span 12}.kpis{grid-template-columns:1fr}}
+@media print{@page{size:A4 landscape;margin:8mm}body{background:var(--bg)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:0}.no-print{display:none!important}.panel,.kpi,.gc{break-inside:avoid;box-shadow:none}}
+
+.DONUT_PALETTE_0{fill:#34d399}.DONUT_PALETTE_1{fill:#38bdf8}.DONUT_PALETTE_2{fill:#fbbf24}.DONUT_PALETTE_3{fill:#a78bfa}.DONUT_PALETTE_4{fill:#f472b6}.DONUT_PALETTE_5{fill:#22d3ee}.DONUT_PALETTE_6{fill:#fb923c}.DONUT_PALETTE_7{fill:#94a3b8}
+</style>
+
+<div class="topbar">
+  <div class="brand">
+    <svg class="logo-svg" viewBox="0 0 240 68" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4,6 H44 C62,6 62,34 44,34 H4"/>
+      <path d="M4,34 H46 C68,34 68,62 46,62 H4"/>
+      <path d="M84,6 L112,42"/>
+      <path d="M146,6 V62"/>
+      <path d="M84,46 H146"/>
+      <path d="M236,6 H194 C164,6 164,62 194,62 H236"/>
+    </svg>
+    <div>
+      <h1>Relatório de Expedição</h1>
+      <div class="sub">Solicitação · Separação · Emissão de NF</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="controls no-print">
+    <div class="field"><label>De</label><input type="date" id="dtDe"></div>
+    <div class="field"><label>Até</label><input type="date" id="dtAte"></div>
+    <div class="field"><label>&nbsp;</label>
+      <div class="chip-presets">
+        <button class="chip" data-preset="dia">Último dia</button>
+        <button class="chip" data-preset="7">7 dias</button>
+        <button class="chip" data-preset="30">30 dias</button>
+        <button class="chip" data-preset="mes">Este mês</button>
+        <button class="chip" data-preset="tudo">Tudo</button>
+      </div>
+    </div>
+    <div class="field"><label>&nbsp;</label><button class="btn primary" id="btnRefresh">&#10227; Atualizar</button></div>
+    <div class="field"><label>&nbsp;</label><button class="btn" id="btnClean">&#9788; Modo Clean</button></div>
+  </div>
+</div>
+
+<div class="filterbar no-print" id="filterbar">
+  <span class="lbl">Filtros</span><span id="filterTags"></span>
+  <span class="mut" id="noFilter">clique nos gráficos para filtrar — nada some, só destaca</span>
+  <button class="btn ghost small" id="btnClear" style="margin-left:auto;display:none">Limpar filtros &#10005;</button>
+</div>
+
+<div class="gcards" id="gcards"></div>
+<div class="kpis" id="kpis"></div>
+
+<div class="grid">
+  <div class="panel span8">
+    <h3><span class="hdot dot-sol"></span> Evolução diária <span class="badge" id="tsRange">—</span></h3>
+    <div class="cap">Pedidos · Itens separados · NFs emitidas — total e variação dia a dia</div>
+    <div class="ts-legend">
+      <div class="li"><span class="sw" style="background:var(--sol)"></span> Pedidos</div>
+      <div class="li"><span class="sw" style="background:var(--sep)"></span> Itens sep.</div>
+      <div class="li"><span class="sw" style="background:var(--nf)"></span> NFs</div>
+    </div>
+    <div class="evo-wrap" id="evoDay"></div>
+  </div>
+  <div class="panel span4">
+    <h3><span class="hdot dot-sep"></span> Status da separação</h3>
+    <div class="cap">Distribuição por status — todos os status</div>
+    <div class="donut-wrap"><div id="donutStatus"></div></div>
+  </div>
+
+  <div class="panel span6">
+    <h3><span class="hdot dot-sol"></span> Evolução mensal</h3>
+    <div class="cap">Todos os meses — dados completos</div>
+    <div class="ts-legend">
+      <div class="li"><span class="sw" style="background:var(--sol)"></span> Pedidos</div>
+      <div class="li"><span class="sw" style="background:var(--sep)"></span> Itens sep.</div>
+      <div class="li"><span class="sw" style="background:var(--nf)"></span> NFs</div>
+    </div>
+    <div class="evo-wrap" id="evoMonth"></div>
+  </div>
+  <div class="panel span6">
+    <h3><span class="hdot dot-nf"></span> Evolução anual</h3>
+    <div class="cap">Acumulado por ano</div>
+    <div class="ts-legend">
+      <div class="li"><span class="sw" style="background:var(--sol)"></span> Pedidos</div>
+      <div class="li"><span class="sw" style="background:var(--sep)"></span> Itens sep.</div>
+      <div class="li"><span class="sw" style="background:var(--nf)"></span> NFs</div>
+    </div>
+    <div class="evo-wrap" id="evoYear"></div>
+  </div>
+
+  <div class="panel span4">
+    <h3><span class="hdot dot-sol"></span> Novos pedidos adicionados por solicitante</h3>
+    <div class="cap">Pedidos únicos por solicitante</div>
+    <div class="bars" id="barSolic"></div>
+  </div>
+  <div class="panel span4">
+    <h3><span class="hdot dot-sep"></span> Itens separados por responsável</h3>
+    <div class="cap">Linhas finalizadas por responsável</div>
+    <div class="bars" id="barSep"></div>
+  </div>
+  <div class="panel span4">
+    <h3><span class="hdot dot-nf"></span> NFs por emissor</h3>
+    <div class="cap">NFs únicas por emissor</div>
+    <div class="bars" id="barEmiss"></div>
+  </div>
+
+  <div class="panel span6">
+    <h3><span class="hdot dot-nf"></span> Natureza da NF</h3>
+    <div class="cap">Quantidade de NFs emitidas por natureza</div>
+    <div class="donut-wrap"><div id="donutNat"></div></div>
+  </div>
+  <div class="panel span6">
+    <h3><span class="hdot dot-sep"></span> Média de separação — últimos 10 dias</h3>
+    <div class="cap">Itens separados por dia nos últimos 10 dias com atividade</div>
+    <div class="evo-wrap" id="evoMedia"></div>
+  </div>
+
+  <div class="panel span12">
+    <h3><span class="hdot dot-sol"></span> Pedidos sem NF <span class="badge" id="tblCount">—</span></h3>
+    <div class="cap">Pedidos criados que ainda não possuem nota fiscal — sem filtro, dados completos</div>
+    <div class="tblwrap">
+      <table id="tbl">
+        <thead><tr><th>Solicitante</th><th>Pedido</th><th>Data ped.</th><th>Cliente</th><th>Cód. SAP</th><th>Denominação</th><th>Status</th><th>Prioridade</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>Fonte: Google Sheets ao vivo · Última atualização: <span id="lastUpd">—</span> · <span id="rowsInfo"></span></footer>
+<div id="overlay"><div class="olbox"><div class="spin"></div><div id="olText">Carregando dados…</div></div></div>
+<div id="toast"></div>
+
+<script>
+const SHEET_ID="1d_FyfBt_FdBLpYLS9O8KAaynuHeXESV6IW_mso-ehEU",GID="0";
+const TQ="select A,B,D,E,F,G,J,N,P,S,X,Y,AB,AJ,AO,AQ,AR,AT,BB";
+const IX={sol:0,prio:1,nat:2,pedAnt:3,pedNovo:4,dtPed:5,cli:6,sap:7,denom:8,qtdSol:9,sep:10,dtSep:11,qtdAt:12,status:13,emiss:14,nf:15,dtEmis:16,nfEst:17,tSep:18};
+const DPAL=['#34d399','#38bdf8','#fbbf24','#a78bfa','#f472b6','#22d3ee','#fb923c','#94a3b8'];
+
+let RAW=[],dateStart=null,dateEnd=null,maxDate=null,minDate=null,refMax=null;
+const filters={sol:new Set(),cli:new Set(),status:new Set(),nat:new Set(),sep:new Set(),emiss:new Set()};
+const DLBL={sol:'Solicitante',cli:'Cliente',status:'Status',nat:'Natureza',sep:'Separador',emiss:'Emissor'};
+
+const $=s=>document.querySelector(s);
+function overlay(on,t){$("#overlay").classList.toggle('on',on);if(t)$("#olText").textContent=t;}
+let toT;function toast(m,e){const t=$("#toast");t.textContent=m;t.classList.toggle('err',!!e);t.classList.add('on');clearTimeout(toT);toT=setTimeout(()=>t.classList.remove('on'),e?6000:3000);}
+const nf=n=>(n||0).toLocaleString('pt-BR');
+function parseDate(s){if(!s)return null;s=String(s).trim();if(!s)return null;let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){let y=+m[3];if(y<100)y+=2000;return new Date(y,+m[2]-1,+m[1]);}m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);return null;}
+const dkey=d=>d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):'';
+const fromInput=v=>{const m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):null;};
+const brDate=d=>d?String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear():'';
+function inRange(d){if(!d)return false;const t=d.getTime();return(!dateStart||t>=dateStart.getTime())&&(!dateEnd||t<=dateEnd.getTime());}
+function parseCSV(t){const rows=[];let row=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}else{if(c==='"')q=true;else if(c===','){row.push(f);f='';}else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}else if(c==='\r'){}else f+=c;}}if(f.length||row.length){row.push(f);rows.push(row);}return rows;}
+function escH(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function escA(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function parseTimeSec(s){if(!s)return null;const m=String(s).match(/(\d+):(\d+):(\d+)/);return m?(+m[1]*3600+ +m[2]*60+ +m[3]):null;}
+function fmtTime(sec){if(sec==null)return'—';const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);return h>0?h+'h'+String(m).padStart(2,'0')+'m':m+'min';}
+
+function gvizURL(){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&tq=${encodeURIComponent(TQ)}&_=${Date.now()}`;}
+
+async function loadData(){
+  overlay(true,'Buscando dados da planilha…');
+  try{
+    const res=await fetch(gvizURL(),{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text(),rows=parseCSV(txt);
+    if(rows.length<2)throw new Error('Planilha vazia.');
+    rows.shift();
+    RAW=rows.map(r=>({
+      sol:(r[IX.sol]||'').trim(),
+      prio:(r[IX.prio]||'').trim()||'—',
+      nat:(r[IX.nat]||'').trim()||'—',
+      ped:((r[IX.pedNovo]||'').trim()||(r[IX.pedAnt]||'').trim()),
+      dtPed:parseDate(r[IX.dtPed]),
+      cli:(r[IX.cli]||'').trim()||'—',
+      sap:(r[IX.sap]||'').trim(),
+      denom:(r[IX.denom]||'').trim(),
+      sep:(r[IX.sep]||'').trim()||'—',
+      dtSep:parseDate(r[IX.dtSep]),
+      status:(r[IX.status]||'').trim()||'—',
+      emiss:(r[IX.emiss]||'').trim()||'—',
+      nf:(r[IX.nf]||'').trim(),
+      dtEmis:parseDate(r[IX.dtEmis]),
+      nfEst:(r[IX.nfEst]||'').trim(),
+      tSep:parseTimeSec(r[IX.tSep])
+    })).filter(o=>o.sol||o.ped||o.nf);
+
+    const all=[],act=[];
+    RAW.forEach(o=>{
+      [o.dtPed,o.dtSep,o.dtEmis].forEach(d=>{if(d)all.push(d.getTime())});
+      if(o.dtPed&&o.ped)act.push(o.dtPed.getTime());
+      if(o.dtEmis&&o.nf)act.push(o.dtEmis.getTime());
+    });
+    if(all.length){minDate=new Date(Math.min(...all));maxDate=new Date(Math.max(...all));}
+    refMax=act.length?new Date(Math.max(...act)):maxDate;
+    if(dateStart===null)setPreset('dia',true);
+    $("#lastUpd").textContent=new Date().toLocaleString('pt-BR');
+    $("#rowsInfo").textContent=nf(RAW.length)+' linhas carregadas';
+    render();toast('Dados atualizados');
+  }catch(e){overlay(false);toast('Erro: '+e.message,true);console.error(e);return;}
+  overlay(false);
+}
+
+function setPreset(p,silent){
+  if(!maxDate)return;
+  const a=refMax||maxDate;let s,e=new Date(a);
+  if(p==='dia'){s=new Date(a);}
+  else if(p==='7'){s=new Date(a);s.setDate(s.getDate()-6);}
+  else if(p==='30'){s=new Date(a);s.setDate(s.getDate()-29);}
+  else if(p==='mes'){s=new Date(a.getFullYear(),a.getMonth(),1);}
+  else if(p==='tudo'){s=new Date(minDate);e=new Date(maxDate);}
+  dateStart=s;dateEnd=e;
+  $("#dtDe").value=dkey(s);$("#dtAte").value=dkey(e);
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.preset===p));
+  if(!silent)render();
+}
+
+function passes(o,exclude){for(const d in filters){if(d===exclude)continue;if(filters[d].size&&!filters[d].has(o[d]))return false;}return true;}
+function toggleFilter(dim,val){const s=filters[dim];if(s.has(val))s.delete(val);else s.add(val);render();}
+function clearFilters(){for(const d in filters)filters[d].clear();render();}
+
+/* ===== GLOBAL CARDS (sem filtro) ===== */
+function calcGlobal(){
+  const peds=new Set(),nfs=new Set(),nfsEst=new Set();
+  const pedNFs={},pedEst={};
+  RAW.forEach(o=>{
+    if(o.ped){
+      peds.add(o.ped);
+      if(!pedNFs[o.ped])pedNFs[o.ped]=new Set();
+      if(!pedEst[o.ped])pedEst[o.ped]=new Set();
+      if(o.nf){nfs.add(o.nf);pedNFs[o.ped].add(o.nf);}
+      if(o.nfEst){nfsEst.add(o.nfEst);pedEst[o.ped].add(o.nfEst);}
+    }
+  });
+  let agEmissao=0,agTrat=0,itensSepTotal=0;
+  const pedSepSet=new Set(),pedComNF=new Set();
+  RAW.forEach(o=>{if(o.ped&&/finaliz/i.test(o.status)){itensSepTotal++;pedSepSet.add(o.ped);}});
+  peds.forEach(p=>{
+    const pn=pedNFs[p]||new Set(),pe=pedEst[p]||new Set();
+    if(pn.size>0)pedComNF.add(p);
+    if(pn.size===0)agEmissao++;
+    if(pe.size>0){const valid=[...pn].filter(n=>!pe.has(n));if(valid.length===0&&pn.size>0)agTrat++;}
+  });
+  return{totalSol:peds.size,nfsEmit:nfs.size,agEmissao,nfsEst:nfsEst.size,agTrat,itensSepTotal,pedSep:pedSepSet.size,pedComNF:pedComNF.size};
+}
+
+/* ===== FILTERED METRICS ===== */
+function calcPedidos(rows){const s=new Set();rows.forEach(o=>{if(inRange(o.dtPed)&&o.ped)s.add(o.ped);});return s.size;}
+function calcItens(rows){let n=0;rows.forEach(o=>{if(inRange(o.dtSep)&&/finaliz/i.test(o.status))n++;});return n;}
+function calcNfs(rows){const s=new Set();rows.forEach(o=>{if(inRange(o.dtEmis)&&o.nf)s.add(o.nf);});return s.size;}
+
+function aggPedidosBy(dim){const rows=RAW.filter(o=>passes(o,dim));const m={};rows.forEach(o=>{if(inRange(o.dtPed)&&o.ped)(m[o[dim]]=m[o[dim]]||new Set()).add(o.ped);});return Object.entries(m).map(([k,v])=>({label:k,value:v.size})).sort((a,b)=>b.value-a.value);}
+function aggItensBy(dim){const rows=RAW.filter(o=>passes(o,dim));const m={};rows.forEach(o=>{if(inRange(o.dtSep)&&/finaliz/i.test(o.status))m[o[dim]]=(m[o[dim]]||0)+1;});return Object.entries(m).map(([k,v])=>({label:k,value:v})).sort((a,b)=>b.value-a.value);}
+function aggItensLinhasBy(dim){const rows=RAW.filter(o=>passes(o,dim));const m={};rows.forEach(o=>{if(inRange(o.dtSep))m[o[dim]]=(m[o[dim]]||0)+1;});return Object.entries(m).map(([k,v])=>({label:k,value:v})).sort((a,b)=>b.value-a.value);}
+function aggStatusByPed(dim){const rows=RAW.filter(o=>passes(o,dim));const m={};rows.forEach(o=>{if(inRange(o.dtPed))m[o[dim]]=(m[o[dim]]||0)+1;});return Object.entries(m).map(([k,v])=>({label:k,value:v})).sort((a,b)=>b.value-a.value);}
+function aggNfsBy(dim){const rows=RAW.filter(o=>passes(o,dim));const m={};rows.forEach(o=>{if(inRange(o.dtEmis)&&o.nf)(m[o[dim]]=m[o[dim]]||new Set()).add(o.nf);});return Object.entries(m).map(([k,v])=>({label:k,value:v.size})).sort((a,b)=>b.value-a.value);}
+function aggNfsByNat(){const rows=RAW.filter(o=>passes(o,'nat'));const m={};rows.forEach(o=>{if(inRange(o.dtEmis)&&o.nf)(m[o.nat]=m[o.nat]||new Set()).add(o.nf);});return Object.entries(m).map(([k,v])=>({label:k,value:v.size})).sort((a,b)=>b.value-a.value);}
+
+/* ===== PEDIDOS SEM NF (sem filtro) ===== */
+function calcPedidosSemNF(){
+  const pedMap={};
+  RAW.forEach(o=>{if(!o.ped)return;if(!pedMap[o.ped])pedMap[o.ped]={lines:[],hasNF:false};pedMap[o.ped].lines.push(o);if(o.nf)pedMap[o.ped].hasNF=true;});
+  const result=[];
+  Object.values(pedMap).forEach(d=>{if(!d.hasNF)d.lines.forEach(l=>result.push(l));});
+  return result;
+}
+function countPedidosSemNF(){
+  const pedMap={};
+  RAW.forEach(o=>{if(!o.ped)return;if(!pedMap[o.ped])pedMap[o.ped]=false;if(o.nf)pedMap[o.ped]=true;});
+  return Object.values(pedMap).filter(v=>!v).length;
+}
+
+/* ===== EVOLUTION DATA ===== */
+function calcEvoDaily(base){
+  if(!dateStart||!dateEnd)return[];
+  const days=[];let d=new Date(dateStart);
+  while(d.getTime()<=dateEnd.getTime()&&days.length<60){days.push(new Date(d));d.setDate(d.getDate()+1);}
+  const map={};days.forEach(dd=>map[dkey(dd)]={ped:new Set(),itens:0,nf:new Set()});
+  base.forEach(o=>{
+    if(o.dtPed){const k=dkey(o.dtPed);if(map[k]&&o.ped)map[k].ped.add(o.ped);}
+    if(o.dtSep&&/finaliz/i.test(o.status)){const k=dkey(o.dtSep);if(map[k])map[k].itens++;}
+    if(o.dtEmis&&o.nf){const k=dkey(o.dtEmis);if(map[k])map[k].nf.add(o.nf);}
+  });
+  return days.map(dd=>{const m=map[dkey(dd)];return{label:String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0'),ped:m.ped.size,itens:m.itens,nf:m.nf.size};});
+}
+
+function calcEvoMonthly(){
+  const map={};
+  RAW.forEach(o=>{
+    const add=(dt,type,val)=>{if(!dt)return;const k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');if(!map[k])map[k]={ped:new Set(),itens:0,nf:new Set()};if(type==='ped'&&val)map[k].ped.add(val);if(type==='itens')map[k].itens++;if(type==='nf'&&val)map[k].nf.add(val);};
+    if(o.dtPed&&o.ped)add(o.dtPed,'ped',o.ped);
+    if(o.dtSep&&/finaliz/i.test(o.status))add(o.dtSep,'itens');
+    if(o.dtEmis&&o.nf)add(o.dtEmis,'nf',o.nf);
+  });
+  return Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([k,m])=>{const[y,mo]=k.split('-');return{label:mo+'/'+y,ped:m.ped.size,itens:m.itens,nf:m.nf.size};});
+}
+
+function calcEvoYearly(){
+  const map={};
+  RAW.forEach(o=>{
+    const add=(dt,type,val)=>{if(!dt)return;const k=String(dt.getFullYear());if(!map[k])map[k]={ped:new Set(),itens:0,nf:new Set()};if(type==='ped'&&val)map[k].ped.add(val);if(type==='itens')map[k].itens++;if(type==='nf'&&val)map[k].nf.add(val);};
+    if(o.dtPed&&o.ped)add(o.dtPed,'ped',o.ped);
+    if(o.dtSep&&/finaliz/i.test(o.status))add(o.dtSep,'itens');
+    if(o.dtEmis&&o.nf)add(o.dtEmis,'nf',o.nf);
+  });
+  return Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([k,m])=>({label:k,ped:m.ped.size,itens:m.itens,nf:m.nf.size}));
+}
+
+function calcMediaSep10d(){
+  const dayMap={};
+  RAW.forEach(o=>{
+    if(o.dtSep&&/finaliz/i.test(o.status)){const k=dkey(o.dtSep);dayMap[k]=(dayMap[k]||0)+1;}
+  });
+  const sorted=Object.entries(dayMap).sort(([a],[b])=>b.localeCompare(a)).slice(0,10);
+  if(!sorted.length)return{avg:0,days:[]};
+  const avg=sorted.reduce((a,[,v])=>a+v,0)/sorted.length;
+  return{avg,days:sorted.reverse().map(([k,v])=>({label:k.slice(5).replace('-','/'),value:v}))};
+}
+
+/* ===== SVG EVO CHART ===== */
+function buildEvoSVG(data,opts){
+  opts=opts||{};
+  const bW=opts.barW||11,bG=2,gW=bW*3+bG*2,gG=opts.groupGap||14;
+  const W=Math.max(200,data.length*(gW+gG)+gG),H=opts.h||230,tP=28,bP=opts.delta?42:26;
+  const pH=H-tP-bP,maxV=Math.max(1,...data.flatMap(d=>[d.ped,d.itens,d.nf]));
+  let s=`<svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  for(let i=0;i<=3;i++){const y=tP+(pH/3)*i;s+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="var(--line)" stroke-width=".5" opacity=".4"/>`;}
+  data.forEach((d,i)=>{
+    const gx=gG+i*(gW+gG),tot=d.ped+d.itens+d.nf;
+    [{v:d.ped,c:'var(--sol)',x:0},{v:d.itens,c:'var(--sep)',x:bW+bG},{v:d.nf,c:'var(--nf)',x:(bW+bG)*2}].forEach(b=>{
+      const h=Math.max(b.v>0?3:0,(b.v/maxV)*pH),y=tP+pH-h;
+      s+=`<rect x="${gx+b.x}" y="${y}" width="${bW}" height="${h}" fill="${b.c}" rx="3" opacity=".85"><title>${b.v}</title></rect>`;
+    });
+    const mH=Math.max(d.ped,d.itens,d.nf,1),tY=tP+pH-(mH/maxV)*pH-8;
+    s+=`<text x="${gx+gW/2}" y="${Math.max(12,tY)}" text-anchor="middle" fill="var(--txt)" font-size="10" font-weight="800">${tot}</text>`;
+    s+=`<text x="${gx+gW/2}" y="${tP+pH+14}" text-anchor="middle" fill="var(--txt-mut)" font-size="9">${d.label}</text>`;
+    if(opts.delta&&i>0){const pr=data[i-1].ped+data[i-1].itens+data[i-1].nf,dl=tot-pr;if(dl!==0){const c=dl>0?'#22c55e':'#ef4444',ar=dl>0?'▲':'▼';s+=`<text x="${gx+gW/2}" y="${tP+pH+28}" text-anchor="middle" fill="${c}" font-size="8" font-weight="700">${ar}${dl>0?'+':''}${dl}</text>`;}}
+  });
+  if(data.length>1){
+    const mT=Math.max(1,...data.map(d=>d.ped+d.itens+d.nf));
+    const pts=data.map((d,i)=>{const gx=gG+i*(gW+gG)+gW/2,tot=d.ped+d.itens+d.nf;return{x:gx,y:tP+pH-(tot/mT)*pH};});
+    for(let i=1;i<pts.length;i++){const up=pts[i].y<=pts[i-1].y;s+=`<line x1="${pts[i-1].x}" y1="${pts[i-1].y}" x2="${pts[i].x}" y2="${pts[i].y}" stroke="${up?'rgba(34,197,94,.4)':'rgba(239,68,68,.4)'}" stroke-width="2"/>`;}
+    pts.forEach(p=>s+=`<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="var(--txt-dim)" opacity=".5"/>`);
+  }
+  s+='</svg>';return s;
+}
+
+function buildMediaSVG(days){
+  if(!days.length)return'<div class="empty">Sem dados</div>';
+  const maxV=Math.max(1,...days.map(d=>d.value));
+  const bW=28,gap=8,W=days.length*(bW+gap)+gap,H=160,tP=22,bP=22,pH=H-tP-bP;
+  const avg=days.reduce((a,d)=>a+d.value,0)/days.length;
+  let s=`<svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  const avgY=tP+pH-(avg/maxV)*pH;
+  s+=`<line x1="0" y1="${avgY}" x2="${W}" y2="${avgY}" stroke="var(--sep)" stroke-width="1.5" stroke-dasharray="6,4" opacity=".7"/>`;
+  s+=`<text x="${W-4}" y="${avgY-4}" text-anchor="end" fill="var(--sep)" font-size="9" font-weight="700">média: ${avg.toFixed(1)}</text>`;
+  days.forEach((d,i)=>{
+    const x=gap+i*(bW+gap),h=Math.max(d.value>0?3:0,(d.value/maxV)*pH),y=tP+pH-h;
+    s+=`<rect x="${x}" y="${y}" width="${bW}" height="${h}" fill="var(--sep)" rx="4" opacity=".8"/>`;
+    s+=`<text x="${x+bW/2}" y="${y-4}" text-anchor="middle" fill="var(--txt)" font-size="9" font-weight="700">${d.value}</text>`;
+    s+=`<text x="${x+bW/2}" y="${tP+pH+14}" text-anchor="middle" fill="var(--txt-mut)" font-size="8">${d.label}</text>`;
+  });
+  s+='</svg>';return s;
+}
+
+/* ===== MAIN RENDER ===== */
+function render(){
+  const base=RAW.filter(o=>passes(o,null));
+  const g=calcGlobal();
+  renderGlobal(g);
+
+  const pedidos=calcPedidos(base),itens=calcItens(base);
+  const pedSepDist=new Set();let itensFat=0;
+  base.forEach(o=>{if(inRange(o.dtSep)&&/finaliz/i.test(o.status)&&o.ped)pedSepDist.add(o.ped);if(inRange(o.dtEmis)&&o.nf)itensFat++;});
+  const nfs=calcNfs(base);
+  const med=calcMediaSep10d();
+  renderKPIs(pedidos,itens,pedSepDist.size,nfs,itensFat,med);
+
+  const dayData=calcEvoDaily(base);
+  $("#evoDay").innerHTML=dayData.length?buildEvoSVG(dayData,{delta:true}):'<div class="empty">Sem dados no período</div>';
+  $("#tsRange").textContent=brDate(dateStart)+' → '+brDate(dateEnd);
+
+  const mData=calcEvoMonthly();
+  $("#evoMonth").innerHTML=mData.length?buildEvoSVG(mData,{barW:14,groupGap:18,delta:true,h:210}):'<div class="empty">Sem dados</div>';
+  const yData=calcEvoYearly();
+  $("#evoYear").innerHTML=yData.length?buildEvoSVG(yData,{barW:30,groupGap:30,delta:true,h:210}):'<div class="empty">Sem dados</div>';
+
+  $("#evoMedia").innerHTML=buildMediaSVG(med.days);
+
+  renderBars('#barSolic','sol',aggPedidosBy('sol'),'var(--sol)');
+  renderBars('#barSep','sep',aggItensBy('sep'),'var(--sep)');
+  renderBars('#barEmiss','emiss',aggNfsBy('emiss'),'var(--nf)');
+
+  renderDonut('#donutStatus','status',aggStatusByPed('status'));
+  renderDonut('#donutNat','nat',aggNfsByNat());
+
+  renderFilterTags();
+  renderTableSemNF();
+}
+
+function renderGlobal(g){
+  const pSemNF=countPedidosSemNF();
+  $("#gcards").innerHTML=`
+  <div class="gc c-sol"><div class="gt">Total Solicitações</div><div class="gv">${nf(g.totalSol)}</div></div>
+  <div class="gc c-nf"><div class="gt">NFs Emitidas</div><div class="gv">${nf(g.nfsEmit)}</div></div>
+  <div class="gc c-sep"><div class="gt">Aguardando Emissão</div><div class="gv">${nf(g.agEmissao)}</div></div>
+  <div class="gc c-red"><div class="gt">NFs Estornadas</div><div class="gv">${nf(g.nfsEst)}</div></div>
+  <div class="gc c-orange"><div class="gt">Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div></div>
+  <div class="gc c-sep"><div class="gt">Itens Separados Total</div><div class="gv">${nf(g.itensSepTotal)}</div></div>
+  <div class="gc c-sol"><div class="gt">Pedidos Separados</div><div class="gv">${nf(g.pedSep)} <span style="font-size:14px;color:var(--txt-dim)">/ ${nf(g.totalSol)}</span></div></div>
+  <div class="gc c-nf"><div class="gt">Pedidos com NF</div><div class="gv">${nf(g.pedComNF)} <span style="font-size:14px;color:var(--txt-dim)">/ ${nf(g.totalSol)}</span></div></div>`;
+}
+
+function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med){
+  const ref=brDate(dateStart)===brDate(dateEnd)?brDate(dateStart):'período';
+  $("#kpis").innerHTML=`
+  <div class="kpi sol"><div class="glow"></div>
+    <div class="head"><span class="dot"></span><span class="title">Solicitação</span></div>
+    <div class="big">${nf(pedidos)}</div><span class="unit">pedidos criados</span>
+    <div class="subs"><div class="sub"><span class="v">${ref}</span><span class="k">referência</span></div></div>
+  </div>
+  <div class="kpi sep"><div class="glow"></div>
+    <div class="head"><span class="dot"></span><span class="title">Separação</span></div>
+    <div class="big">${nf(itens)}</div><span class="unit">itens separados</span>
+    <div class="subs">
+      <div class="sub"><span class="v">${nf(pedSep)}</span><span class="k">pedidos separados</span></div>
+      <div class="sub"><span class="v">${itens&&pedSep?(itens/pedSep).toFixed(1):'0'}</span><span class="k">itens / pedido</span></div>
+      <div class="sub"><span class="v">${med.avg.toFixed(1)}</span><span class="k">média 10 dias</span></div>
+    </div>
+  </div>
+  <div class="kpi nf"><div class="glow"></div>
+    <div class="head"><span class="dot"></span><span class="title">Emissão de NF</span></div>
+    <div class="big">${nf(nfs)}</div><span class="unit">notas emitidas</span>
+    <div class="subs"><div class="sub"><span class="v">${nf(itensFat)}</span><span class="k">itens faturados</span></div></div>
+  </div>`;
+}
+
+function renderBars(sel,dim,data,color,limit){
+  const el=$(sel);const sub=limit?data.slice(0,limit):data;
+  if(!sub.length){el.innerHTML='<div class="empty">Sem dados no período</div>';return;}
+  const max=Math.max(...sub.map(d=>d.value))||1;const active=filters[dim];
+  el.innerHTML=sub.map(d=>{
+    const dm=active.size&&!active.has(d.label);
+    return`<div class="bar ${dm?'dim':''}" data-dim="${dim}" data-val="${escA(d.label)}">
+      <div class="brow"><span class="bname" title="${escA(d.label)}">${escH(d.label)}</span><span class="bval">${nf(d.value)}</span></div>
+      <div class="track"><div class="fill" style="width:${(d.value/max*100).toFixed(1)}%;background:${color}"></div></div></div>`;
+  }).join('');
+  el.querySelectorAll('.bar').forEach(b=>b.onclick=()=>toggleFilter(b.dataset.dim,b.dataset.val));
+}
+
+function renderDonut(sel,dim,data){
+  const el=$(sel);if(!data.length){el.innerHTML='<div class="empty">Sem dados no período</div>';return;}
+  const top=data.slice(0,7);if(data.length>7){top.push({label:'Outros',value:data.slice(7).reduce((a,b)=>a+b.value,0),_nc:true});}
+  const total=top.reduce((a,b)=>a+b.value,0)||1;const active=filters[dim];
+  const R=48,C=2*Math.PI*R;let off=0;
+  const segs=top.map((d,i)=>{const frac=d.value/total,len=frac*C;const col=DPAL[i%DPAL.length];const dm=active.size&&!active.has(d.label)&&!d._nc;
+    const s=`<circle class="donut-seg ${dm?'dim':''}" data-dim="${dim}" data-val="${escA(d.label)}" data-nc="${d._nc?1:0}" r="${R}" cx="64" cy="64" fill="none" stroke="${col}" stroke-width="16" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 64 64)"/>`;off+=len;return{s,col,d,dm};});
+  const grand=data.reduce((a,b)=>a+b.value,0);
+  el.innerHTML=`<div class="donut-wrap">
+    <svg width="128" height="128" viewBox="0 0 128 128">${segs.map(x=>x.s).join('')}
+      <text x="64" y="60" text-anchor="middle" fill="var(--txt)" font-size="20" font-weight="800">${nf(grand)}</text>
+      <text x="64" y="76" text-anchor="middle" fill="var(--txt-mut)" font-size="9">linhas</text></svg>
+    <div class="legend">${top.map((d,i)=>{const dm=active.size&&!active.has(d.label)&&!d._nc;
+      return`<div class="leg ${dm?'dim':''}" data-dim="${dim}" data-val="${escA(d.label)}" data-nc="${d._nc?1:0}">
+        <span class="sw" style="background:${DPAL[i%DPAL.length]}"></span>
+        <span class="ln" title="${escA(d.label)}">${escH(d.label)}</span><span class="lv">${nf(d.value)}</span></div>`;}).join('')}</div></div>`;
+  el.querySelectorAll('[data-dim]').forEach(n=>{if(n.dataset.nc==='1')return;n.style.cursor='pointer';n.onclick=()=>toggleFilter(n.dataset.dim,n.dataset.val);});
+}
+
+function renderFilterTags(){
+  const w=$("#filterTags");w.innerHTML='';let any=false;
+  for(const dim in filters){filters[dim].forEach(v=>{any=true;const t=document.createElement('span');t.className='tag';t.innerHTML=`<b>${DLBL[dim]}:</b> ${escH(v)} <span class="x">✕</span>`;t.querySelector('.x').onclick=()=>toggleFilter(dim,v);w.appendChild(t);});}
+  $("#noFilter").style.display=any?'none':'inline';
+  $("#btnClear").style.display=any?'inline-flex':'none';
+}
+
+function renderTableSemNF(){
+  const rows=calcPedidosSemNF().sort((a,b)=>(b.dtPed||0)-(a.dtPed||0));
+  const distinctPeds=new Set(rows.map(o=>o.ped));
+  $("#tblCount").textContent=nf(distinctPeds.size)+' pedidos · '+nf(rows.length)+' linhas';
+  const tb=$("#tbl").querySelector('tbody');
+  tb.innerHTML=rows.slice(0,400).map(o=>{
+    const fin=/finaliz/i.test(o.status),sep=/separação/i.test(o.status);
+    return`<tr>
+      <td>${escH(o.sol)}</td><td>${escH(o.ped)}</td><td>${brDate(o.dtPed)}</td><td>${escH(o.cli)}</td>
+      <td>${escH(o.sap)}</td><td title="${escA(o.denom)}">${escH((o.denom||'').slice(0,30))}</td>
+      <td><span class="st ${fin?'fin':sep?'sep-s':'other'}">${escH(o.status)}</span></td>
+      <td>${escH(o.prio)}</td></tr>`;
+  }).join('');
+}
+
+/* ===== EVENTS ===== */
+$("#btnRefresh").onclick=loadData;
+$("#btnClear").onclick=clearFilters;
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>setPreset(c.dataset.preset));
+$("#dtDe").onchange=e=>{dateStart=fromInput(e.target.value);document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));render();};
+$("#dtAte").onchange=e=>{dateEnd=fromInput(e.target.value);document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));render();};
+
+const btnC=$("#btnClean");
+btnC.onclick=()=>{document.body.classList.toggle('clean');const c=document.body.classList.contains('clean');btnC.innerHTML=c?'&#9790; Modo Dark':'&#9788; Modo Clean';try{localStorage.setItem('theme',c?'clean':'dark')}catch(e){}};
+try{if(localStorage.getItem('theme')==='clean'){document.body.classList.add('clean');btnC.innerHTML='&#9790; Modo Dark';}}catch(e){}
+
+loadData();
+</script>
