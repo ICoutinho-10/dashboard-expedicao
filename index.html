@@ -4,13 +4,13 @@
 <style>
 :root{
   --sol:#fbbf24;--sol-soft:#3a2f0e;
-  --sep:#38bdf8;--sep-soft:#0e2a3d;
-  --nf:#34d399;--nf-soft:#0e3327;
-  --red:#ef4444;--red-soft:#3b1111;
-  --orange:#f97316;--orange-soft:#3b2008;
-  --bg:#0a0f1e;--bg2:#0f1730;--panel:#131c38;--panel2:#1a2547;
-  --line:#26325c;--txt:#e8edfb;--txt-dim:#8b98c9;--txt-mut:#5f6d9e;
-  --radius:14px;--shadow:0 8px 24px rgba(0,0,0,.3);
+  --sep:#22d3ee;--sep-soft:#0a2e3a;
+  --nf:#22c9a8;--nf-soft:#0a3327;
+  --red:#f472b6;--red-soft:#3a1229;
+  --orange:#c084fc;--orange-soft:#2a1240;
+  --bg:#0d1a3d;--bg2:#132356;--panel:#1a2b66;--panel2:#22357a;
+  --line:#2e4499;--txt:#f0f4ff;--txt-dim:#a8b5e8;--txt-mut:#6a7bb8;
+  --radius:14px;--shadow:0 8px 32px rgba(0,0,0,.45);
 }
 body.clean{
   --sol:#d97706;--sol-soft:#fef3c7;
@@ -30,8 +30,8 @@ body{
   transition:background .3s,color .3s;
 }
 body:not(.clean){
-  background:radial-gradient(1200px 600px at 12% -10%,#16224a 0%,transparent 55%),
-             radial-gradient(1000px 500px at 100% 0%,#12203f 0%,transparent 50%),var(--bg);
+  background:linear-gradient(180deg,#132356 0%,var(--bg) 60%);
+  background-attachment:fixed;
 }
 h1,h2,h3{margin:0}.mut{color:var(--txt-mut)}
 
@@ -185,9 +185,9 @@ footer{margin-top:16px;text-align:center;color:var(--txt-mut);font-size:10px}
   </div>
 </div>
 
-<div class="filterbar no-print" id="filterbar">
+<div class="filterbar no-print" id="filterbar" style="display:none">
   <span class="lbl">Filtros</span><span id="filterTags"></span>
-  <span class="mut" id="noFilter">clique nos gráficos para filtrar — nada some, só destaca</span>
+  <span class="mut" id="noFilter"></span>
   <button class="btn ghost small" id="btnClear" style="margin-left:auto;display:none">Limpar filtros &#10005;</button>
 </div>
 
@@ -355,24 +355,30 @@ async function fetchSheet(cfg){
 async function loadData(){
   overlay(true,'Buscando dados das 3 planilhas…');
   try{
-    const results=await Promise.all(GIDS.map(fetchSheet));
-    RAW=[].concat(...results);
-    if(!RAW.length)throw new Error('Sem dados nas planilhas.');
+    const results=await Promise.allSettled(GIDS.map(fetchSheet));
+    const ok=[],fail=[];
+    results.forEach((r,i)=>{if(r.status==='fulfilled')ok.push(...r.value);else fail.push(GIDS[i].origem+': '+r.reason.message);});
+    RAW=ok;
+    if(!RAW.length)throw new Error(fail.join(' | ')||'Sem dados nas planilhas.');
+    if(fail.length)console.warn('Aba(s) com falha:',fail);
 
-    const all=[],act=[];
-    RAW.forEach(o=>{
-      [o.dtPed,o.dtSep,o.dtEmis].forEach(d=>{if(d)all.push(d.getTime())});
-      if(o.dtPed&&o.ped)act.push(o.dtPed.getTime());
-      if(o.dtEmis&&o.nf)act.push(o.dtEmis.getTime());
-    });
-    if(all.length){minDate=new Date(Math.min(...all));maxDate=new Date(Math.max(...all));}
-    refMax=act.length?new Date(Math.max(...act)):maxDate;
-    if(dateStart===null)setPreset('dia',true);
-    if(evoStart===null){const a=refMax||maxDate;evoStart=new Date(a);evoStart.setDate(evoStart.getDate()-29);evoEnd=new Date(a);}
+    let mn=Infinity,mx=-Infinity,rmx=-Infinity;
+    for(const o of RAW){
+      const ds=[o.dtPed,o.dtSep,o.dtEmis];
+      for(const d of ds){if(d){const t=d.getTime();if(t<mn)mn=t;if(t>mx)mx=t;}}
+      if(o.dtPed&&o.ped){const t=o.dtPed.getTime();if(t>rmx)rmx=t;}
+      if(o.dtEmis&&o.nf){const t=o.dtEmis.getTime();if(t>rmx)rmx=t;}
+    }
+    if(mn!==Infinity){minDate=new Date(mn);maxDate=new Date(mx);}
+    refMax=rmx!==-Infinity?new Date(rmx):maxDate;
+    dateStart=null;dateEnd=null;evoStart=null;evoEnd=null;
+    if(maxDate)setPreset('dia',true);
+    if(evoStart===null&&(refMax||maxDate)){const a=refMax||maxDate;evoStart=new Date(a);evoStart.setDate(evoStart.getDate()-29);evoEnd=new Date(a);}
     $("#lastUpd").textContent=new Date().toLocaleString('pt-BR');
-    $("#rowsInfo").textContent=nf(RAW.length)+' linhas carregadas';
-    render();toast('Dados atualizados');
-  }catch(e){overlay(false);toast('Erro: '+e.message,true);console.error(e);return;}
+    $("#rowsInfo").textContent=nf(RAW.length)+' linhas carregadas'+(fail.length?' (parcial)':'');
+    render();
+    toast(fail.length?'Dados parciais — '+fail.length+' aba(s) falhou':'Dados atualizados',fail.length>0);
+  }catch(e){toast('Erro: '+e.message,true);console.error(e);}
   overlay(false);
 }
 
@@ -478,7 +484,7 @@ function calcEvoDaily(){
     if(o.dtSep&&/finaliz/i.test(o.status)){const k=dkey(o.dtSep);if(map[k])map[k].itens++;}
     if(o.dtEmis&&o.nf){const k=dkey(o.dtEmis);if(map[k])map[k].nf.add(o.nf);}
   });
-  return days.map(dd=>{const m=map[dkey(dd)];return{label:String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0'),ped:m.ped.size,itens:m.itens,nf:m.nf.size};});
+  return days.map(dd=>{const m=map[dkey(dd)];return{label:String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0'),ped:m.ped.size,itens:m.itens,nf:m.nf.size};}).filter(d=>d.ped||d.itens||d.nf);
 }
 
 function calcEvoMonthly(){
@@ -600,10 +606,7 @@ function renderGlobal(g){
   <div class="gc c-nf"><div class="gt">NFs Emitidas</div><div class="gv">${nf(g.nfsEmit)}</div></div>
   <div class="gc c-sep"><div class="gt">Aguardando Emissão</div><div class="gv">${nf(g.agEmissao)}</div></div>
   <div class="gc c-red"><div class="gt">NFs Estornadas</div><div class="gv">${nf(g.nfsEst)}</div></div>
-  <div class="gc c-orange"><div class="gt">Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div></div>
-  <div class="gc c-sep"><div class="gt">Itens Separados Total</div><div class="gv">${nf(g.itensSepTotal)}</div></div>
-  <div class="gc c-sol"><div class="gt">Pedidos Separados</div><div class="gv">${nf(g.pedSep)} <span style="font-size:14px;color:var(--txt-dim)">/ ${nf(g.totalSol)}</span></div></div>
-  <div class="gc c-nf"><div class="gt">Pedidos com NF</div><div class="gv">${nf(g.pedComNF)} <span style="font-size:14px;color:var(--txt-dim)">/ ${nf(g.totalSol)}</span></div></div>`;
+  <div class="gc c-orange"><div class="gt">Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div></div>`;
 }
 
 function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst){
@@ -668,8 +671,9 @@ function renderDonut(sel,dim,data){
 function renderFilterTags(){
   const w=$("#filterTags");w.innerHTML='';let any=false;
   for(const dim in filters){filters[dim].forEach(v=>{any=true;const t=document.createElement('span');t.className='tag';t.innerHTML=`<b>${DLBL[dim]}:</b> ${escH(v)} <span class="x">✕</span>`;t.querySelector('.x').onclick=()=>toggleFilter(dim,v);w.appendChild(t);});}
-  $("#noFilter").style.display=any?'none':'inline';
+  $("#noFilter").style.display='none';
   $("#btnClear").style.display=any?'inline-flex':'none';
+  $("#filterbar").style.display=any?'flex':'none';
 }
 
 function renderTableSemNF(){
