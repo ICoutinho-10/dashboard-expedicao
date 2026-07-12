@@ -71,13 +71,20 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .tag .x{cursor:pointer;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:var(--txt-dim);font-size:11px}
 .tag .x:hover{background:#ef4444;color:#fff}
 
-.gcards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
-.gc{position:relative;border-radius:8px;background:var(--panel);border:1px solid var(--line);padding:8px 10px;box-shadow:var(--shadow);overflow:hidden}
+.body-layout{display:grid;grid-template-columns:210px 1fr;gap:8px;align-items:start}
+@media(max-width:1100px){.body-layout{grid-template-columns:1fr}}
+.gcards{display:grid;grid-template-columns:1fr;gap:8px}
+.gc{position:relative;border-radius:8px;background:var(--panel);border:1px solid var(--line);padding:9px 11px 10px;box-shadow:var(--shadow);overflow:hidden}
 .gc::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px}
 .gc.c-sol::after{background:var(--sol)}.gc.c-nf::after{background:var(--nf)}.gc.c-sep::after{background:var(--sep)}.gc.c-red::after{background:var(--red)}.gc.c-orange::after{background:var(--orange)}
-.gc .gt{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--txt-mut);font-weight:700;margin-bottom:2px;line-height:1.1;min-height:20px}
-.gc .gv{font-size:22px;font-weight:800;line-height:1}
+.gc .gt{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--txt-mut);font-weight:700;margin-bottom:2px;line-height:1.1}
+.gc .gv{font-size:24px;font-weight:800;line-height:1}
 .gc.c-sol .gv{color:var(--sol)}.gc.c-nf .gv{color:var(--nf)}.gc.c-sep .gv{color:var(--sep)}.gc.c-red .gv{color:var(--red)}.gc.c-orange .gv{color:var(--orange)}
+.gc .gsub{font-size:9px;color:var(--txt-mut);margin-top:2px;line-height:1.2}
+.gc .pbar{margin-top:6px;height:4px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+body.clean .gc .pbar{background:rgba(0,0,0,.06)}
+.gc .pbar .pf{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.gc.c-sol .pf{background:var(--sol)}.gc.c-nf .pf{background:var(--nf)}.gc.c-sep .pf{background:var(--sep)}.gc.c-red .pf{background:var(--red)}.gc.c-orange .pf{background:var(--orange)}
 
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
 .kpi{position:relative;overflow:hidden;border-radius:10px;background:var(--panel);border:1px solid var(--line);padding:10px 12px;box-shadow:var(--shadow)}
@@ -200,9 +207,10 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
   <button class="btn ghost small" id="btnClear" style="margin-left:auto;display:none">Limpar filtros &#10005;</button>
 </div>
 
-<div class="gcards" id="gcards"></div>
+<div class="body-layout">
+<aside><div class="gcards" id="gcards"></div></aside>
+<main>
 <div class="kpis" id="kpis"></div>
-
 <div class="grid">
   <div class="panel span4">
     <h3><span class="hdot dot-sep"></span> Status da separação</h3>
@@ -246,6 +254,8 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
       </table>
     </div>
   </div>
+</div>
+</main>
 </div>
 
 <footer>Fonte: Google Sheets ao vivo · Última atualização: <span id="lastUpd">—</span> · <span id="rowsInfo"></span></footer>
@@ -588,13 +598,23 @@ function render(){
 }
 
 function renderGlobal(g){
-  const pSemNF=countPedidosSemNF();
+  const pctComNF=g.totalSol?(g.pedComNF/g.totalSol*100):0;
+  const pctEmit=g.totalSol?(g.nfsEmit/g.totalSol*100):0;
+  const pctAg=g.totalSol?(g.agEmissao/g.totalSol*100):0;
+  const pctEst=g.nfsEmit?(g.nfsEst/g.nfsEmit*100):0;
+  const pctTrat=g.nfsEst?(g.agTrat/g.nfsEst*100):0;
+  const bar=(cls,pct)=>`<div class="pbar"><div class="pf" style="width:${Math.min(100,pct).toFixed(1)}%"></div></div>`;
   $("#gcards").innerHTML=`
-  <div class="gc c-sol"><div class="gt">Total Solicitações</div><div class="gv">${nf(g.totalSol)}</div></div>
-  <div class="gc c-nf"><div class="gt">NFs Emitidas</div><div class="gv">${nf(g.nfsEmit)}</div></div>
-  <div class="gc c-sep"><div class="gt">Aguardando Emissão</div><div class="gv">${nf(g.agEmissao)}</div></div>
-  <div class="gc c-red"><div class="gt">NFs Estornadas</div><div class="gv">${nf(g.nfsEst)}</div></div>
-  <div class="gc c-orange"><div class="gt">Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div></div>`;
+  <div class="gc c-sol"><div class="gt">Total Solicitações</div><div class="gv">${nf(g.totalSol)}</div>
+    <div class="gsub">${pctComNF.toFixed(1)}% com NF</div>${bar('sol',pctComNF)}</div>
+  <div class="gc c-nf"><div class="gt">NFs Emitidas</div><div class="gv">${nf(g.nfsEmit)}</div>
+    <div class="gsub">${pctEmit.toFixed(1)}% do total</div>${bar('nf',pctEmit)}</div>
+  <div class="gc c-sep"><div class="gt">Aguardando Emissão</div><div class="gv">${nf(g.agEmissao)}</div>
+    <div class="gsub">${pctAg.toFixed(1)}% do total</div>${bar('sep',pctAg)}</div>
+  <div class="gc c-red"><div class="gt">NFs Estornadas</div><div class="gv">${nf(g.nfsEst)}</div>
+    <div class="gsub">${pctEst.toFixed(1)}% das emitidas</div>${bar('red',pctEst)}</div>
+  <div class="gc c-orange"><div class="gt">Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div>
+    <div class="gsub">${pctTrat.toFixed(1)}% das estornadas</div>${bar('orange',pctTrat)}</div>`;
 }
 
 function buildSparkline(data,key,color){
