@@ -92,6 +92,7 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .kpi.sol .big{color:var(--sol)}.kpi.sep .big{color:var(--sep)}.kpi.nf .big{color:var(--nf)}
 .kpi .unit{font-size:13px;color:var(--txt-dim);font-weight:600}
 .kpi .subs{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.kpi .spark{display:block;width:100%;height:90px;margin-top:12px}
 .kpi .sub{display:flex;flex-direction:column}
 .kpi .sub .v{font-size:16px;font-weight:700}
 .kpi .sub .k{font-size:10px;color:var(--txt-mut)}
@@ -195,26 +196,7 @@ footer{margin-top:16px;text-align:center;color:var(--txt-mut);font-size:10px}
 <div class="kpis" id="kpis"></div>
 
 <div class="grid">
-  <div class="panel span8">
-    <h3><span class="hdot dot-sol"></span> Evolução diária <span class="badge" id="tsRange">—</span></h3>
-    <div class="cap">Pedidos · Itens separados · NFs emitidas — total e variação dia a dia (período independente dos demais gráficos)</div>
-    <div class="evo-ctrl">
-      <label>De <input type="date" id="evoDe"></label>
-      <label>Até <input type="date" id="evoAte"></label>
-      <button class="chip small" data-evo="7">7 dias</button>
-      <button class="chip small" data-evo="30">30 dias</button>
-      <button class="chip small" data-evo="mes">Este mês</button>
-      <button class="chip small" data-evo="ano">Este ano</button>
-      <button class="chip small" data-evo="tudo">Tudo</button>
-    </div>
-    <div class="ts-legend">
-      <div class="li"><span class="sw" style="background:var(--sol)"></span> Pedidos</div>
-      <div class="li"><span class="sw" style="background:var(--sep)"></span> Itens sep.</div>
-      <div class="li"><span class="sw" style="background:var(--nf)"></span> NFs</div>
-    </div>
-    <div class="evo-wrap" id="evoDay"></div>
-  </div>
-  <div class="panel span4">
+  <div class="panel span12">
     <h3><span class="hdot dot-sep"></span> Status da separação</h3>
     <div class="cap">Distribuição por status — todos os status</div>
     <div class="donut-wrap"><div id="donutStatus"></div></div>
@@ -579,7 +561,6 @@ function render(){
   const med=calcMediaSep10d();
   renderKPIs(pedidos,itens,pedSepDist.size,nfs,itensFat,med,nfsEstSet.size);
 
-  renderEvoDay();
 
   const mData=calcEvoMonthly();
   $("#evoMonth").innerHTML=mData.length?buildEvoSVG(mData,{barW:14,groupGap:18,delta:true,h:210}):'<div class="empty">Sem dados</div>';
@@ -609,13 +590,47 @@ function renderGlobal(g){
   <div class="gc c-orange"><div class="gt">Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div></div>`;
 }
 
+function buildSparkline(data,key,color){
+  if(!data.length)return'';
+  const w=300,h=90,padT=18,padB=12,padX=6;
+  const vals=data.map(d=>d[key]);
+  const max=Math.max(...vals,1);
+  const bw=Math.max(2,(w-padX*2)/data.length-1);
+  const step=(w-padX*2)/data.length;
+  const fontSz=data.length>18?6:data.length>12?7:8;
+  let bars='',pts=[],labels='';
+  data.forEach((d,i)=>{
+    const v=d[key];
+    const bh=(v/max)*(h-padT-padB);
+    const x=padX+i*step;
+    const y=h-padB-bh;
+    bars+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="${color}" opacity="0.8" rx="1"/>`;
+    pts.push([x+bw/2,y]);
+    if(v>0)labels+=`<text x="${(x+bw/2).toFixed(1)}" y="${(y-2).toFixed(1)}" text-anchor="middle" fill="var(--txt)" font-size="${fontSz}" font-weight="700">${nf(v)}</text>`;
+  });
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const first=data[0].label,last=data[data.length-1].label,total=vals.reduce((a,b)=>a+b,0);
+  return`<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    ${bars}
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="1.5" opacity="0.9"/>
+    ${labels}
+    <text x="${padX}" y="${h-2}" fill="var(--txt-mut)" font-size="7">${first}</text>
+    <text x="${w-padX}" y="${h-2}" text-anchor="end" fill="var(--txt-mut)" font-size="7">${last}</text>
+    <text x="${w/2}" y="10" text-anchor="middle" fill="var(--txt-dim)" font-size="8" font-weight="600">Total ${nf(total)} · ${data.length} dias</text>
+  </svg>`;
+}
 function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst){
   const ref=brDate(dateStart)===brDate(dateEnd)?brDate(dateStart):'período';
+  const evo=calcEvoDaily();
+  const sparkSol=buildSparkline(evo,'ped','var(--sol)');
+  const sparkSep=buildSparkline(evo,'itens','var(--sep)');
+  const sparkNf=buildSparkline(evo,'nf','var(--nf)');
   $("#kpis").innerHTML=`
   <div class="kpi sol"><div class="glow"></div>
     <div class="head"><span class="dot"></span><span class="title">Solicitação</span></div>
     <div class="big">${nf(pedidos)}</div><span class="unit">pedidos criados</span>
     <div class="subs"><div class="sub"><span class="v">${ref}</span><span class="k">referência</span></div></div>
+    ${sparkSol}
   </div>
   <div class="kpi sep"><div class="glow"></div>
     <div class="head"><span class="dot"></span><span class="title">Separação</span></div>
@@ -625,6 +640,7 @@ function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst){
       <div class="sub"><span class="v">${nf(pedSep)}</span><span class="k">pedidos separados</span></div>
       <div class="sub"><span class="v">${med.avg.toFixed(1)}</span><span class="k">média 10 dias</span></div>
     </div>
+    ${sparkSep}
   </div>
   <div class="kpi nf"><div class="glow"></div>
     <div class="head"><span class="dot"></span><span class="title">Emissão de NF</span></div>
@@ -633,6 +649,7 @@ function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst){
       <div class="sub"><span class="v">${ref}</span><span class="k">referência</span></div>
       <div class="sub"><span class="v">${nf(nfsEst)}</span><span class="k">NFs estornadas</span></div>
     </div>
+    ${sparkNf}
   </div>`;
 }
 
@@ -695,9 +712,6 @@ function renderTableSemNF(){
 $("#btnRefresh").onclick=loadData;
 $("#btnClear").onclick=clearFilters;
 document.querySelectorAll('.chip[data-preset]').forEach(c=>c.onclick=()=>setPreset(c.dataset.preset));
-document.querySelectorAll('.chip[data-evo]').forEach(c=>c.onclick=()=>setEvoPreset(c.dataset.evo));
-$("#evoDe").onchange=e=>{evoStart=fromInput(e.target.value);renderEvoDay();};
-$("#evoAte").onchange=e=>{evoEnd=fromInput(e.target.value);renderEvoDay();};
 $("#dtDe").onchange=e=>{dateStart=fromInput(e.target.value);document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));render();};
 $("#dtAte").onchange=e=>{dateEnd=fromInput(e.target.value);document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));render();};
 
