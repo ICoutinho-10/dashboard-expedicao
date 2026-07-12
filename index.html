@@ -122,7 +122,10 @@ body.clean .sidebar .sb-brand img{filter:invert(1)brightness(2);mix-blend-mode:s
 .kpi.sol .big{color:var(--sol)}.kpi.sep .big{color:var(--sep)}.kpi.nf .big{color:var(--nf)}
 .kpi .unit{font-size:11px;color:var(--txt-dim);font-weight:600}
 .kpi .subs{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
-.kpi .spark{display:block;width:100%;height:96px;margin-top:6px}
+.kpi .spark{display:block;width:100%;height:118px;margin-top:6px}
+.evo-line .spark{height:150px}
+.col3d-wrap{overflow-x:auto}
+.col3d{display:block;width:100%;height:160px}
 .kpi .sub{display:flex;flex-direction:column}
 .kpi .sub .v{font-size:13px;font-weight:700}
 .kpi .sub .k{font-size:9px;color:var(--txt-mut)}
@@ -240,6 +243,38 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
 <div class="kpis" id="kpis"></div>
 <div class="grid">
   <div class="panel span4">
+    <h3><span class="hdot dot-sol"></span> Evolução — Solicitações</h3>
+    <div class="cap">Pedidos criados por dia no período</div>
+    <div class="evo-line" id="lineSol"></div>
+  </div>
+  <div class="panel span4">
+    <h3><span class="hdot dot-sep"></span> Evolução — Separações</h3>
+    <div class="cap">Itens separados por dia no período</div>
+    <div class="evo-line" id="lineSep"></div>
+  </div>
+  <div class="panel span4">
+    <h3><span class="hdot dot-nf"></span> Evolução — Emissões</h3>
+    <div class="cap">NFs emitidas por dia no período</div>
+    <div class="evo-line" id="lineNf"></div>
+  </div>
+
+  <div class="panel span4">
+    <h3><span class="hdot dot-sol"></span> Solicitações por mês</h3>
+    <div class="cap">Total mensal — colunas 3D</div>
+    <div class="col3d-wrap" id="col3dSol"></div>
+  </div>
+  <div class="panel span4">
+    <h3><span class="hdot dot-sep"></span> Separações por mês</h3>
+    <div class="cap">Total mensal — colunas 3D</div>
+    <div class="col3d-wrap" id="col3dSep"></div>
+  </div>
+  <div class="panel span4">
+    <h3><span class="hdot dot-nf"></span> Emissões por mês</h3>
+    <div class="cap">Total mensal — colunas 3D</div>
+    <div class="col3d-wrap" id="col3dNf"></div>
+  </div>
+
+  <div class="panel span4">
     <h3><span class="hdot dot-sep"></span> Status da separação</h3>
     <div class="cap">Distribuição por status</div>
     <div class="donut-wrap"><div id="donutStatus"></div></div>
@@ -316,6 +351,21 @@ function parseDate(s){if(!s)return null;s=String(s).trim();if(!s)return null;let
 const dkey=d=>d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):'';
 const fromInput=v=>{const m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):null;};
 const brDate=d=>d?String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear():'';
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(y,month-1,day);}
+const _holCache={};
+function holidaysOf(y){
+  if(_holCache[y])return _holCache[y];
+  const e=easter(y),add=(dt,n)=>{const x=new Date(dt);x.setDate(x.getDate()+n);return x;};
+  const s=new Set([
+    dkey(new Date(y,0,1)),dkey(add(e,-48)),dkey(add(e,-47)),dkey(add(e,-2)),
+    dkey(new Date(y,3,21)),dkey(new Date(y,4,1)),dkey(add(e,60)),
+    dkey(new Date(y,8,7)),dkey(new Date(y,9,12)),dkey(new Date(y,10,2)),
+    dkey(new Date(y,10,15)),dkey(new Date(y,11,25))
+  ]);
+  _holCache[y]=s;return s;
+}
+function isBusinessDay(d){const w=d.getDay();if(w===0||w===6)return false;return !holidaysOf(d.getFullYear()).has(dkey(d));}
+function countBusinessDays(dmin,dmax){let n=0,d=new Date(dmin);while(d.getTime()<=dmax.getTime()){if(isBusinessDay(d))n++;d.setDate(d.getDate()+1);}return n;}
 function inRange(d){
   if(!d)return false;
   if(fltState.anos.size&&!fltState.anos.has(d.getFullYear()))return false;
@@ -422,6 +472,7 @@ function toggleFilter(dim,val){const s=filters[dim];if(s.has(val))s.delete(val);
 function clearFilters(){for(const d in filters)filters[d].clear();render();}
 
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES_ABBR=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function populateDateFilters(){
   if(!minDate||!maxDate)return;
   const anos=new Set();
@@ -501,15 +552,20 @@ function calcGlobal(){
   if(dtPeds.length){
     const dmin=new Date(Math.min(...dtPeds.map(d=>d.getTime())));
     const dmax=new Date(Math.max(...dtPeds.map(d=>d.getTime())));
-    const dias=Math.max(1,Math.round((dmax-dmin)/86400000)+1);
-    mediaPedDia=peds.size/dias;
+    const diasUteis=Math.max(1,countBusinessDays(dmin,dmax));
+    mediaPedDia=peds.size/diasUteis;
   }
+  const anoAtual=new Date().getFullYear();
+  const nfPorMes={};
+  RAW.forEach(o=>{if(o.ped&&o.nf&&o.dtEmis&&o.dtEmis.getFullYear()===anoAtual){const m=o.dtEmis.getMonth();(nfPorMes[m]=nfPorMes[m]||new Set()).add(o.nf);}});
+  let melhorMes=null,melhorMesQtd=0;
+  Object.entries(nfPorMes).forEach(([m,s])=>{if(s.size>melhorMesQtd){melhorMesQtd=s.size;melhorMes=+m;}});
   const dtEmisPorPed={};
   RAW.forEach(o=>{if(o.ped&&o.nf&&o.dtEmis&&(!dtEmisPorPed[o.ped]||o.dtEmis<dtEmisPorPed[o.ped]))dtEmisPorPed[o.ped]=o.dtEmis;});
   const temposDias=[];
   Object.keys(dtEmisPorPed).forEach(p=>{if(dtCriacao[p]){const d=(dtEmisPorPed[p]-dtCriacao[p])/86400000;if(d>=0&&d<400)temposDias.push(d);}});
   const tempoMedio=temposDias.length?temposDias.reduce((a,b)=>a+b,0)/temposDias.length:0;
-  return{totalSol:peds.size,nfsEmit:nfs.size,agEmissao,nfsEst:nfsEst.size,agTrat,tratativas,itensSepTotal,pedSep:pedSepSet.size,pedComNF:pedComNF.size,mediaPedDia,tempoMedio};
+  return{totalSol:peds.size,nfsEmit:nfs.size,agEmissao,nfsEst:nfsEst.size,agTrat,tratativas,itensSepTotal,pedSep:pedSepSet.size,pedComNF:pedComNF.size,mediaPedDia,tempoMedio,melhorMes,melhorMesQtd,anoAtual};
 }
 
 /* ===== FILTERED METRICS ===== */
@@ -549,7 +605,7 @@ function calcEvoDaily(){
   });
   return Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([k,m])=>{
     const dd=m.d;
-    return{label:String(dd.getDate()).padStart(2,'0')+'/'+String(dd.getMonth()+1).padStart(2,'0'),ped:m.ped.size,itens:m.itens,nf:m.nf.size};
+    return{label:String(dd.getDate()).padStart(2,'0')+'/'+MESES_ABBR[dd.getMonth()],ped:m.ped.size,itens:m.itens,nf:m.nf.size};
   }).filter(d=>d.ped||d.itens||d.nf);
 }
 
@@ -670,7 +726,7 @@ function renderGlobal(g){
   <div class="gc c-sol"><div class="gt">Total Solicitações</div><div class="gv">${nf(g.totalSol)}</div>
     <div class="gsub">${pctComNF.toFixed(1)}% com NF</div>${bar(pctComNF)}</div>
   <div class="gc c-nf"><div class="gt">NFs Emitidas</div><div class="gv">${nf(g.nfsEmit)}</div>
-    <div class="gsub">Média ${(g.mediaPedDia||0).toFixed(1)} NFs/dia</div></div>
+    <div class="gsub">${g.melhorMes!=null?`Melhor mês: ${MESES_ABBR[g.melhorMes].toUpperCase()}/${g.anoAtual} (${nf(g.melhorMesQtd)})`:'—'}</div></div>
   <div class="gc c-sep"><div class="gt">Aguardando Emissão</div><div class="gv">${nf(g.agEmissao)}</div>
     <div class="gsub">Backlog atual</div></div>
   <div class="gc c-red"><div class="gt">NFs Estornadas</div><div class="gv">${nf(g.nfsEst)}</div>
@@ -679,9 +735,9 @@ function renderGlobal(g){
     ${tratList}</div>`;
 }
 
-function buildSparkline(data,key,color){
+function buildSparkline(data,key,color,titleLabel,periodLabel){
   if(!data.length)return'';
-  const w=300,h=110,padT=14,padB=30,padX=8;
+  const w=300,h=118,padT=14,padB=38,padX=8;
   const vals=data.map(d=>d[key]);
   const max=Math.max(...vals,1);
   const step=data.length>1?(w-padX*2)/(data.length-1):0;
@@ -694,32 +750,85 @@ function buildSparkline(data,key,color){
     const cy=h-padB-(v/max)*(h-padT-padB);
     pts.push([cx,cy]);
     if(v>0)labels+=`<text x="${cx.toFixed(1)}" y="${(cy-3).toFixed(1)}" text-anchor="middle" fill="var(--txt)" font-size="${fontSz}" font-weight="700">${nf(v)}</text>`;
-    dates+=`<text x="${cx.toFixed(1)}" y="${h-padB+8}" text-anchor="end" fill="var(--txt-dim)" font-size="${dtSz}" transform="rotate(-90 ${cx.toFixed(1)} ${h-padB+8})">${escH(d.label)}</text>`;
+    dates+=`<text x="${cx.toFixed(1)}" y="${h-padB+10}" text-anchor="end" fill="var(--txt-dim)" font-size="${dtSz}" transform="rotate(-45 ${cx.toFixed(1)} ${h-padB+10})">${escH(d.label)}</text>`;
   });
   const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
   const areaY0=h-padB;
   const area=line+` L ${(padX+(data.length-1)*step).toFixed(1)},${areaY0} L ${padX},${areaY0} Z`;
   const total=vals.reduce((a,b)=>a+b,0);
-  const unit='dias';
+  const header=`Total de ${nf(total)} ${titleLabel} em ${periodLabel||''}`;
   return`<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
     <path d="${area}" fill="${color}" fill-opacity="0.22"/>
     <path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" opacity="0.95"/>
     ${labels}
     ${dates}
-    <text x="${w/2}" y="9" text-anchor="middle" fill="var(--txt-dim)" font-size="8" font-weight="600">Total ${nf(total)} · ${data.length} ${unit}</text>
+    <text x="${w/2}" y="9" text-anchor="middle" fill="var(--txt-dim)" font-size="8" font-weight="600">${escH(header)}</text>
   </svg>`;
+}
+function build3DBars(data,key,color){
+  if(!data.length)return'<div class="empty">Sem dados</div>';
+  const w=340,h=180,padT=20,padB=40,padL=8,padR=8;
+  const n=data.length;
+  const bw=Math.min(38,(w-padL-padR)/n-6);
+  const gap=((w-padL-padR)-bw*n)/(n+1);
+  const vals=data.map(d=>d[key]||0);
+  const max=Math.max(...vals,1);
+  const depth=8;
+  const uid='c3d'+Math.random().toString(36).slice(2,7);
+  let out=`<svg class="col3d" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="${uid}f" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="${uid}s" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(0,0,0,0.55)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.15)"/>
+    </linearGradient>
+    <filter id="${uid}sh"><feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#000" flood-opacity="0.35"/></filter>
+  </defs>`;
+  data.forEach((d,i)=>{
+    const v=d[key]||0;
+    const bh=(v/max)*(h-padT-padB);
+    const x=padL+gap+i*(bw+gap);
+    const y=h-padB-bh;
+    // top (parallelogram)
+    out+=`<polygon points="${x},${y} ${x+bw},${y} ${x+bw+depth},${y-depth} ${x+depth},${y-depth}" fill="${color}" fill-opacity="0.95" filter="url(#${uid}sh)"/>`;
+    // side
+    out+=`<polygon points="${x+bw},${y} ${x+bw+depth},${y-depth} ${x+bw+depth},${h-padB-depth} ${x+bw},${h-padB}" fill="url(#${uid}s)"/>`;
+    // front
+    out+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="url(#${uid}f)"/>`;
+    // value label
+    if(v>0)out+=`<text x="${x+bw/2+depth/2}" y="${y-depth-3}" text-anchor="middle" fill="var(--txt)" font-size="10" font-weight="700">${nf(v)}</text>`;
+    // month label
+    out+=`<text x="${x+bw/2}" y="${h-padB+12}" text-anchor="middle" fill="var(--txt-dim)" font-size="9">${escH(d.label)}</text>`;
+  });
+  const total=vals.reduce((a,b)=>a+b,0);
+  out+=`<text x="${w/2}" y="11" text-anchor="middle" fill="var(--txt-dim)" font-size="9" font-weight="600">Total ${nf(total)} · ${n} ${n===1?'mês':'meses'}</text>`;
+  out+='</svg>';
+  return out;
 }
 function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst,g){
   const evo=calcEvoDaily();
-  const sparkSol=buildSparkline(evo,'ped','var(--sol)');
-  const sparkSep=buildSparkline(evo,'itens','var(--sep)');
-  const sparkNf=buildSparkline(evo,'nf','var(--nf)');
-  let periodLabel='';
-  if(fltState.meses.size&&fltState.anos.size){periodLabel=[...fltState.meses].map(m=>MESES[m-1]).join(', ')+' / '+[...fltState.anos].join(', ');}
-  else if(fltState.meses.size){periodLabel=[...fltState.meses].map(m=>MESES[m-1]).join(', ');}
-  else if(fltState.anos.size){periodLabel=[...fltState.anos].join(', ');}
-  else if(maxDate){periodLabel=MESES[maxDate.getMonth()]+' / '+maxDate.getFullYear();}
+  const dias=[...fltState.dias].sort((a,b)=>a-b);
+  const meses=[...fltState.meses].sort((a,b)=>a-b);
+  const anos=[...fltState.anos].sort((a,b)=>a-b);
+  const partes=[];
+  if(dias.length)partes.push(dias.map(d=>String(d).padStart(2,'0')).join(','));
+  if(meses.length)partes.push(meses.map(m=>MESES_ABBR[m-1].toUpperCase()).join(','));
+  else if(dias.length&&maxDate)partes.push(MESES_ABBR[maxDate.getMonth()].toUpperCase());
+  if(anos.length)partes.push(anos.join(','));
+  else if((meses.length||dias.length)&&maxDate)partes.push(maxDate.getFullYear());
+  if(!partes.length&&maxDate)partes.push(MESES_ABBR[maxDate.getMonth()].toUpperCase(),maxDate.getFullYear());
+  const periodLabel=partes.join('/');
   const periodTag=periodLabel?`<div class="period-tag">${periodLabel}</div>`:'';
+  $("#lineSol").innerHTML=buildSparkline(evo,'ped','var(--sol)','Solicitações',periodLabel);
+  $("#lineSep").innerHTML=buildSparkline(evo,'itens','var(--sep)','Separações',periodLabel);
+  $("#lineNf").innerHTML=buildSparkline(evo,'nf','var(--nf)','Emissões',periodLabel);
+  const monthly=calcEvoMonthly();
+  $("#col3dSol").innerHTML=build3DBars(monthly,'ped','var(--sol)');
+  $("#col3dSep").innerHTML=build3DBars(monthly,'itens','var(--sep)');
+  $("#col3dNf").innerHTML=build3DBars(monthly,'nf','var(--nf)');
   const aguardNF=g?(g.totalSol-g.nfsEmit):0;
   const mediaSol=g?g.mediaPedDia:0;
   const tempoMed=g?g.tempoMedio:0;
@@ -731,16 +840,13 @@ function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst,g){
       <div class="sub"><span class="v">${nf(aguardNF)}</span><span class="k">aguardando NF</span></div>
       <div class="sub"><span class="v">${mediaSol.toFixed(1)}</span><span class="k">média pedidos/dia</span></div>
     </div>
-    ${sparkSol}
   </div>
   <div class="kpi sep"><div class="glow"></div>${periodTag}
     <div class="head"><span class="dot"></span><span class="title">Separação</span></div>
     <div class="big">${nf(itens)}</div><span class="unit">itens separados</span>
     <div class="subs">
-      <div class="sub"><span class="v">${nf(pedSep)}</span><span class="k">pedidos separados</span></div>
       <div class="sub"><span class="v">${med.avg.toFixed(1)}</span><span class="k">média 10 dias</span></div>
     </div>
-    ${sparkSep}
   </div>
   <div class="kpi nf"><div class="glow"></div>${periodTag}
     <div class="head"><span class="dot"></span><span class="title">Emissão de NF</span></div>
@@ -748,7 +854,6 @@ function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst,g){
     <div class="subs">
       <div class="sub"><span class="v">${nf(nfsEst)}</span><span class="k">NFs estornadas</span></div>
     </div>
-    ${sparkNf}
   </div>`;
 }
 
