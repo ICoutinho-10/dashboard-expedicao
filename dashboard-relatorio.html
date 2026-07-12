@@ -26,7 +26,7 @@ body.clean{
 body{
   background:var(--bg);color:var(--txt);
   font-family:"Segoe UI",system-ui,-apple-system,sans-serif;font-size:12px;
-  min-height:100vh;padding:8px 12px 12px;
+  min-height:100vh;padding:0;
   transition:background .3s,color .3s;
 }
 .app{max-width:1760px;margin:0 auto}
@@ -56,6 +56,9 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .btn.primary:hover{filter:brightness(1.08)}
 .btn.ghost{background:transparent}
 .btn.small{padding:5px 9px;font-size:11px}
+.btn.icon{width:32px;height:32px;padding:0;font-size:15px;border-radius:50%;justify-content:center;min-height:32px}
+.period-mark{position:fixed;top:14px;right:22px;font-size:16px;font-weight:800;color:rgba(255,255,255,.08);letter-spacing:.6px;pointer-events:none;text-transform:uppercase;z-index:1;font-family:"Segoe UI",sans-serif}
+body.clean .period-mark{color:rgba(0,0,0,.08)}
 .chip-presets{display:flex;gap:5px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:transparent;color:var(--txt-dim);border-radius:18px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:600;transition:.15s}
 .chip:hover{color:var(--txt);border-color:#3a4a86}
@@ -72,9 +75,10 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .tag .x{cursor:pointer;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:var(--txt-dim);font-size:11px}
 .tag .x:hover{background:#ef4444;color:#fff}
 
-.body-layout{display:grid;grid-template-columns:220px 1fr;gap:10px;align-items:start}
+.body-layout{display:grid;grid-template-columns:220px 1fr;gap:0;align-items:stretch;min-height:100vh}
 @media(max-width:1100px){.body-layout{grid-template-columns:1fr}}
-.sidebar{background:#050c22;border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:16px 14px;box-shadow:0 4px 20px rgba(0,0,0,.35);color:#e6edff}
+.sidebar{background:#050c22;border:none;border-right:1px solid rgba(255,255,255,.05);border-radius:0;padding:16px 14px;box-shadow:0 4px 20px rgba(0,0,0,.35);color:#e6edff;min-height:100vh}
+main{padding:8px 12px 12px}
 body.clean .sidebar{background:#1a2547;color:#f0f4ff}
 .sidebar .sb-brand{display:flex;flex-direction:column;align-items:center;text-align:center;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px}
 .sidebar .sb-brand img{height:36px;filter:invert(1);mix-blend-mode:screen;margin-bottom:8px}
@@ -106,7 +110,7 @@ body.clean .sidebar .sb-brand img{filter:invert(1)brightness(2);mix-blend-mode:s
 .kpi.sol .big{color:var(--sol)}.kpi.sep .big{color:var(--sep)}.kpi.nf .big{color:var(--nf)}
 .kpi .unit{font-size:11px;color:var(--txt-dim);font-weight:600}
 .kpi .subs{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
-.kpi .spark{display:block;width:100%;height:64px;margin-top:4px}
+.kpi .spark{display:block;width:100%;height:96px;margin-top:6px}
 .kpi .sub{display:flex;flex-direction:column}
 .kpi .sub .v{font-size:13px;font-weight:700}
 .kpi .sub .k{font-size:9px;color:var(--txt-mut)}
@@ -198,15 +202,16 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
   <div class="controls no-print">
     <div class="field"><label>De</label><input type="date" id="dtDe"></div>
     <div class="field"><label>Até</label><input type="date" id="dtAte"></div>
-    <div class="field"><label>Ano</label><select id="fltAno"></select></div>
-    <div class="field"><label>Mês</label><select id="fltMes"></select></div>
     <div class="field"><label>Dia</label><select id="fltDia"></select></div>
+    <div class="field"><label>Mês</label><select id="fltMes"></select></div>
+    <div class="field"><label>Ano</label><select id="fltAno"></select></div>
     <div class="field"><label>&nbsp;</label><button class="btn primary" id="btnRefresh">&#10227; Atualizar</button></div>
-    <div class="field"><label>&nbsp;</label><button class="btn" id="btnPrint">&#128424; Imprimir</button></div>
-    <div class="field"><label>&nbsp;</label><button class="btn" id="btnClean">&#9788; Modo Clean</button></div>
+    <div class="field"><label>&nbsp;</label><button class="btn icon" id="btnPrint" title="Imprimir">&#128424;</button></div>
+    <div class="field"><label>&nbsp;</label><button class="btn icon" id="btnClean" title="Alternar tema">&#9788;</button></div>
   </div>
 </div>
 
+<div class="period-mark" id="periodMark"></div>
 <div class="body-layout">
 <aside class="sidebar">
   <div class="sb-brand">
@@ -587,6 +592,7 @@ function render(){
   const base=RAW.filter(o=>passes(o,null));
   const g=calcGlobal();
   renderGlobal(g);
+  if(dateEnd){const d=dateEnd;$("#periodMark").textContent=MESES[d.getMonth()]+' / '+d.getFullYear();}
 
   const pedidos=calcPedidos(base),itens=calcItens(base);
   const pedSepDist=new Set(),nfsEstSet=new Set();let itensFat=0;
@@ -631,31 +637,33 @@ function renderGlobal(g){
 
 function buildSparkline(data,key,color){
   if(!data.length)return'';
-  const w=300,h=90,padT=18,padB=12,padX=6;
+  const w=300,h=110,padT=14,padB=30,padX=8;
   const vals=data.map(d=>d[key]);
   const max=Math.max(...vals,1);
-  const bw=Math.max(2,(w-padX*2)/data.length-1);
-  const step=(w-padX*2)/data.length;
+  const step=data.length>1?(w-padX*2)/(data.length-1):0;
   const fontSz=data.length>18?6:data.length>12?7:8;
-  let bars='',pts=[],labels='';
+  const dtSz=data.length>20?5.5:data.length>14?6:7;
+  let pts=[],labels='',dates='';
   data.forEach((d,i)=>{
     const v=d[key];
-    const bh=(v/max)*(h-padT-padB);
-    const x=padX+i*step;
-    const y=h-padB-bh;
-    bars+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="${color}" opacity="0.8" rx="1"/>`;
-    pts.push([x+bw/2,y]);
-    if(v>0)labels+=`<text x="${(x+bw/2).toFixed(1)}" y="${(y-2).toFixed(1)}" text-anchor="middle" fill="var(--txt)" font-size="${fontSz}" font-weight="700">${nf(v)}</text>`;
+    const cx=padX+i*step;
+    const cy=h-padB-(v/max)*(h-padT-padB);
+    pts.push([cx,cy]);
+    if(v>0)labels+=`<text x="${cx.toFixed(1)}" y="${(cy-3).toFixed(1)}" text-anchor="middle" fill="var(--txt)" font-size="${fontSz}" font-weight="700">${nf(v)}</text>`;
+    dates+=`<text x="${cx.toFixed(1)}" y="${h-padB+8}" text-anchor="end" fill="var(--txt-dim)" font-size="${dtSz}" transform="rotate(-90 ${cx.toFixed(1)} ${h-padB+8})">${escH(d.label)}</text>`;
   });
   const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
-  const first=data[0].label,last=data[data.length-1].label,total=vals.reduce((a,b)=>a+b,0);
+  const areaY0=h-padB;
+  const area=line+` L ${(padX+(data.length-1)*step).toFixed(1)},${areaY0} L ${padX},${areaY0} Z`;
+  const total=vals.reduce((a,b)=>a+b,0);
+  const unit='dias';
   return`<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    ${bars}
-    <path d="${line}" fill="none" stroke="${color}" stroke-width="1.5" opacity="0.9"/>
+    <rect x="0" y="${padT-4}" width="${w}" height="${h-padT-padB+4}" fill="rgba(0,0,0,.32)" rx="4"/>
+    <path d="${area}" fill="${color}" fill-opacity="0.22"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" opacity="0.95"/>
     ${labels}
-    <text x="${padX}" y="${h-2}" fill="var(--txt-mut)" font-size="7">${first}</text>
-    <text x="${w-padX}" y="${h-2}" text-anchor="end" fill="var(--txt-mut)" font-size="7">${last}</text>
-    <text x="${w/2}" y="10" text-anchor="middle" fill="var(--txt-dim)" font-size="8" font-weight="600">Total ${nf(total)} · ${data.length} dias</text>
+    ${dates}
+    <text x="${w/2}" y="9" text-anchor="middle" fill="var(--txt-dim)" font-size="8" font-weight="600">Total ${nf(total)} · ${data.length} ${unit}</text>
   </svg>`;
 }
 function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst){
@@ -756,8 +764,8 @@ $("#dtDe").onchange=e=>{dateStart=fromInput(e.target.value);['fltAno','fltMes','
 $("#dtAte").onchange=e=>{dateEnd=fromInput(e.target.value);['fltAno','fltMes','fltDia'].forEach(id=>$('#'+id).value='');render();};
 
 const btnC=$("#btnClean");
-btnC.onclick=()=>{document.body.classList.toggle('clean');const c=document.body.classList.contains('clean');btnC.innerHTML=c?'&#9790; Modo Dark':'&#9788; Modo Clean';try{localStorage.setItem('theme',c?'clean':'dark')}catch(e){}};
-try{if(localStorage.getItem('theme')==='clean'){document.body.classList.add('clean');btnC.innerHTML='&#9790; Modo Dark';}}catch(e){}
+btnC.onclick=()=>{document.body.classList.toggle('clean');const c=document.body.classList.contains('clean');btnC.innerHTML=c?'&#9790;':'&#9788;';try{localStorage.setItem('theme',c?'clean':'dark')}catch(e){}};
+try{if(localStorage.getItem('theme')==='clean'){document.body.classList.add('clean');btnC.innerHTML='&#9790;';}}catch(e){}
 
 (function(){const lg=document.querySelector('.topbar .logo-img'),sb=document.getElementById('sbLogo');if(lg&&sb)sb.src=lg.src;})();
 loadData();
