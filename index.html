@@ -57,8 +57,7 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .btn.ghost{background:transparent}
 .btn.small{padding:5px 9px;font-size:11px}
 .btn.icon{width:32px;height:32px;padding:0;font-size:15px;border-radius:50%;justify-content:center;min-height:32px}
-.period-mark{position:fixed;top:14px;right:22px;font-size:16px;font-weight:800;color:rgba(255,255,255,.08);letter-spacing:.6px;pointer-events:none;text-transform:uppercase;z-index:1;font-family:"Segoe UI",sans-serif}
-body.clean .period-mark{color:rgba(0,0,0,.08)}
+.kpi .period-tag{position:absolute;top:10px;right:14px;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--txt-dim);opacity:.5;text-transform:uppercase;pointer-events:none}
 .chip-presets{display:flex;gap:5px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:transparent;color:var(--txt-dim);border-radius:18px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:600;transition:.15s}
 .chip:hover{color:var(--txt);border-color:#3a4a86}
@@ -211,7 +210,6 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
   </div>
 </div>
 
-<div class="period-mark" id="periodMark"></div>
 <div class="body-layout">
 <aside class="sidebar">
   <div class="sb-brand">
@@ -592,7 +590,6 @@ function render(){
   const base=RAW.filter(o=>passes(o,null));
   const g=calcGlobal();
   renderGlobal(g);
-  if(dateEnd){const d=dateEnd;$("#periodMark").textContent=MESES[d.getMonth()]+' / '+d.getFullYear();}
 
   const pedidos=calcPedidos(base),itens=calcItens(base);
   const pedSepDist=new Set(),nfsEstSet=new Set();let itensFat=0;
@@ -658,7 +655,6 @@ function buildSparkline(data,key,color){
   const total=vals.reduce((a,b)=>a+b,0);
   const unit='dias';
   return`<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <rect x="0" y="${padT-4}" width="${w}" height="${h-padT-padB+4}" fill="rgba(0,0,0,.32)" rx="4"/>
     <path d="${area}" fill="${color}" fill-opacity="0.22"/>
     <path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" opacity="0.95"/>
     ${labels}
@@ -672,28 +668,26 @@ function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst){
   const sparkSol=buildSparkline(evo,'ped','var(--sol)');
   const sparkSep=buildSparkline(evo,'itens','var(--sep)');
   const sparkNf=buildSparkline(evo,'nf','var(--nf)');
+  const periodTag=dateEnd?`<div class="period-tag">${MESES[dateEnd.getMonth()]} / ${dateEnd.getFullYear()}</div>`:'';
   $("#kpis").innerHTML=`
-  <div class="kpi sol"><div class="glow"></div>
+  <div class="kpi sol"><div class="glow"></div>${periodTag}
     <div class="head"><span class="dot"></span><span class="title">Solicitação</span></div>
     <div class="big">${nf(pedidos)}</div><span class="unit">pedidos criados</span>
-    <div class="subs"><div class="sub"><span class="v">${ref}</span><span class="k">referência</span></div></div>
     ${sparkSol}
   </div>
-  <div class="kpi sep"><div class="glow"></div>
+  <div class="kpi sep"><div class="glow"></div>${periodTag}
     <div class="head"><span class="dot"></span><span class="title">Separação</span></div>
     <div class="big">${nf(itens)}</div><span class="unit">itens separados</span>
     <div class="subs">
-      <div class="sub"><span class="v">${ref}</span><span class="k">referência</span></div>
       <div class="sub"><span class="v">${nf(pedSep)}</span><span class="k">pedidos separados</span></div>
       <div class="sub"><span class="v">${med.avg.toFixed(1)}</span><span class="k">média 10 dias</span></div>
     </div>
     ${sparkSep}
   </div>
-  <div class="kpi nf"><div class="glow"></div>
+  <div class="kpi nf"><div class="glow"></div>${periodTag}
     <div class="head"><span class="dot"></span><span class="title">Emissão de NF</span></div>
     <div class="big">${nf(nfs)}</div><span class="unit">notas emitidas</span>
     <div class="subs">
-      <div class="sub"><span class="v">${ref}</span><span class="k">referência</span></div>
       <div class="sub"><span class="v">${nf(nfsEst)}</span><span class="k">NFs estornadas</span></div>
     </div>
     ${sparkNf}
