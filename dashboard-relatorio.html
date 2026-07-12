@@ -78,7 +78,7 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .gc .gv{font-size:28px;font-weight:800;line-height:1}
 .gc.c-sol .gv{color:var(--sol)}.gc.c-nf .gv{color:var(--nf)}.gc.c-sep .gv{color:var(--sep)}.gc.c-red .gv{color:var(--red)}.gc.c-orange .gv{color:var(--orange)}
 
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
 .kpi{position:relative;overflow:hidden;border-radius:var(--radius);background:var(--panel);border:1px solid var(--line);padding:14px 16px;box-shadow:var(--shadow)}
 .kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;border-radius:4px}
 .kpi.sol::before{background:var(--sol)}.kpi.sep::before{background:var(--sep)}.kpi.nf::before{background:var(--nf)}
@@ -171,16 +171,9 @@ footer{margin-top:16px;text-align:center;color:var(--txt-mut);font-size:10px}
   <div class="controls no-print">
     <div class="field"><label>De</label><input type="date" id="dtDe"></div>
     <div class="field"><label>Até</label><input type="date" id="dtAte"></div>
-    <div class="field"><label>&nbsp;</label>
-      <div class="chip-presets">
-        <button class="chip" data-preset="dia">Último dia</button>
-        <button class="chip" data-preset="7">7 dias</button>
-        <button class="chip" data-preset="30">30 dias</button>
-        <button class="chip" data-preset="mes">Este mês</button>
-        <button class="chip" data-preset="ano">Este ano</button>
-        <button class="chip" data-preset="limpar">Limpar</button>
-      </div>
-    </div>
+    <div class="field"><label>Ano</label><select id="fltAno"></select></div>
+    <div class="field"><label>Mês</label><select id="fltMes"></select></div>
+    <div class="field"><label>Dia</label><select id="fltDia"></select></div>
     <div class="field"><label>&nbsp;</label><button class="btn primary" id="btnRefresh">&#10227; Atualizar</button></div>
     <div class="field"><label>&nbsp;</label><button class="btn" id="btnClean">&#9788; Modo Clean</button></div>
   </div>
@@ -354,8 +347,8 @@ async function loadData(){
     if(mn!==Infinity){minDate=new Date(mn);maxDate=new Date(mx);}
     refMax=rmx!==-Infinity?new Date(rmx):maxDate;
     dateStart=null;dateEnd=null;evoStart=null;evoEnd=null;
-    if(maxDate)setPreset('dia',true);
-    if(evoStart===null&&(refMax||maxDate)){const a=refMax||maxDate;evoStart=new Date(a);evoStart.setDate(evoStart.getDate()-29);evoEnd=new Date(a);}
+    if(maxDate){dateStart=new Date(minDate);dateEnd=new Date(maxDate);$("#dtDe").value=dkey(dateStart);$("#dtAte").value=dkey(dateEnd);}
+    populateDateFilters();
     $("#lastUpd").textContent=new Date().toLocaleString('pt-BR');
     $("#rowsInfo").textContent=nf(RAW.length)+' linhas carregadas'+(fail.length?' (parcial)':'');
     render();
@@ -383,6 +376,32 @@ function setPreset(p,silent){
 function passes(o,exclude){for(const d in filters){if(d===exclude)continue;if(filters[d].size&&!filters[d].has(o[d]))return false;}return true;}
 function toggleFilter(dim,val){const s=filters[dim];if(s.has(val))s.delete(val);else s.add(val);render();}
 function clearFilters(){for(const d in filters)filters[d].clear();render();}
+
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function populateDateFilters(){
+  if(!minDate||!maxDate)return;
+  const anos=new Set();
+  RAW.forEach(o=>{[o.dtPed,o.dtSep,o.dtEmis].forEach(d=>{if(d)anos.add(d.getFullYear());});});
+  const anosArr=[...anos].sort();
+  const fa=$("#fltAno"),fm=$("#fltMes"),fd=$("#fltDia");
+  fa.innerHTML='<option value="">Todos</option>'+anosArr.map(y=>`<option value="${y}">${y}</option>`).join('');
+  fm.innerHTML='<option value="">Todos</option>'+MESES.map((n,i)=>`<option value="${i+1}">${n}</option>`).join('');
+  fd.innerHTML='<option value="">Todos</option>'+Array.from({length:31},(_,i)=>`<option value="${i+1}">${String(i+1).padStart(2,'0')}</option>`).join('');
+}
+function applyDateFilters(){
+  const y=$("#fltAno").value,m=$("#fltMes").value,d=$("#fltDia").value;
+  if(!y&&!m&&!d){dateStart=new Date(minDate);dateEnd=new Date(maxDate);}
+  else{
+    const yr=y?+y:null,mo=m?+m-1:null,dy=d?+d:null;
+    const yStart=yr!=null?yr:minDate.getFullYear(),yEnd=yr!=null?yr:maxDate.getFullYear();
+    const mStart=mo!=null?mo:0,mEnd=mo!=null?mo:11;
+    const dStart=dy!=null?dy:1,dEnd=dy!=null?dy:31;
+    dateStart=new Date(yStart,mStart,dStart);
+    dateEnd=new Date(yEnd,mEnd,dEnd,23,59,59);
+  }
+  $("#dtDe").value=dkey(dateStart);$("#dtAte").value=dkey(dateEnd);
+  render();
+}
 
 function renderEvoDay(){
   const s=evoStart||dateStart,e=evoEnd||dateEnd;
@@ -711,9 +730,9 @@ function renderTableSemNF(){
 /* ===== EVENTS ===== */
 $("#btnRefresh").onclick=loadData;
 $("#btnClear").onclick=clearFilters;
-document.querySelectorAll('.chip[data-preset]').forEach(c=>c.onclick=()=>setPreset(c.dataset.preset));
-$("#dtDe").onchange=e=>{dateStart=fromInput(e.target.value);document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));render();};
-$("#dtAte").onchange=e=>{dateEnd=fromInput(e.target.value);document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));render();};
+['fltAno','fltMes','fltDia'].forEach(id=>$('#'+id).onchange=applyDateFilters);
+$("#dtDe").onchange=e=>{dateStart=fromInput(e.target.value);['fltAno','fltMes','fltDia'].forEach(id=>$('#'+id).value='');render();};
+$("#dtAte").onchange=e=>{dateEnd=fromInput(e.target.value);['fltAno','fltMes','fltDia'].forEach(id=>$('#'+id).value='');render();};
 
 const btnC=$("#btnClean");
 btnC.onclick=()=>{document.body.classList.toggle('clean');const c=document.body.classList.contains('clean');btnC.innerHTML=c?'&#9790; Modo Dark':'&#9788; Modo Clean';try{localStorage.setItem('theme',c?'clean':'dark')}catch(e){}};
