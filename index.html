@@ -147,7 +147,7 @@ body.clean .sidebar{background:#1a2547;color:#f0f4ff}
 body.clean .sidebar .sb-brand img{filter:invert(1)brightness(2);mix-blend-mode:screen}
 .sidebar .sb-brand .sb-title{font-size:13px;font-weight:700;letter-spacing:.3px;line-height:1.2}
 .sidebar .sb-brand .sb-sub{font-size:9px;color:rgba(230,237,255,.55);margin-top:3px;letter-spacing:.4px;text-transform:uppercase}
-.gcards{display:flex;flex-direction:column;gap:14px}
+.gcards{display:flex;flex-direction:column;gap:26px}
 .gc{position:relative;background:transparent;border:none;padding:0;box-shadow:none;overflow:visible}
 .gc::after{display:none}
 .gc .gt{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:rgba(230,237,255,.55);font-weight:700;margin-bottom:3px;line-height:1.1}
@@ -289,13 +289,6 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
   <div class="gcards" id="gcards"></div>
 </aside>
 <main>
-<div class="main-hero">
-  <div>
-    <div class="hero-title">Dashboard Pós-Vendas</div>
-    <div class="hero-sub">Painel executivo · Solicitação · Separação · Emissão de NF</div>
-  </div>
-  <div class="hero-date" id="heroDate"></div>
-</div>
 <div class="filterbar no-print" id="filterbar" style="display:none">
   <span class="lbl">Filtros</span><span id="filterTags"></span>
   <span class="mut" id="noFilter"></span>
@@ -789,7 +782,6 @@ function render(){
   const base=RAW.filter(o=>passes(o,null));
   const g=calcGlobal();
   renderGlobal(g);
-  const hoje=new Date();$("#heroDate").textContent=String(hoje.getDate()).padStart(2,'0')+' de '+MESES[hoje.getMonth()]+' de '+hoje.getFullYear();
 
   const pedidos=calcPedidos(base),itens=calcItens(base);
   const pedSepDist=new Set(),nfsEstSet=new Set();let itensFat=0;
