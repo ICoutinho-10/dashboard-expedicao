@@ -67,7 +67,53 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .btn.ghost{background:transparent}
 .btn.small{padding:5px 9px;font-size:11px}
 .btn.icon{width:32px;height:32px;padding:0;font-size:15px;border-radius:50%;justify-content:center;min-height:32px}
-.kpi .period-tag{position:absolute;top:10px;right:14px;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--txt-dim);opacity:.5;text-transform:uppercase;pointer-events:none}
+.kpi .period-tag,.panel .period-tag{position:absolute;top:10px;right:14px;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--txt-dim);opacity:.5;text-transform:uppercase;pointer-events:none;z-index:2}
+.panel{position:relative}
+
+.main-hero{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;margin-bottom:10px;border-radius:16px;background:linear-gradient(135deg,rgba(37,99,235,.28) 0%,rgba(147,51,234,.18) 55%,rgba(20,184,166,.22) 100%);border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.15);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%)}
+body.clean .main-hero{background:linear-gradient(135deg,#eef2ff 0%,#f5f3ff 55%,#ecfeff 100%);border:1px solid rgba(0,0,0,.06);box-shadow:0 6px 24px rgba(15,23,42,.08)}
+.hero-title{font-size:20px;font-weight:800;letter-spacing:.2px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+body.clean .hero-title{color:#0f172a;text-shadow:none}
+.hero-sub{font-size:11px;color:rgba(255,255,255,.75);letter-spacing:.6px;text-transform:uppercase;margin-top:2px}
+body.clean .hero-sub{color:rgba(0,0,0,.55)}
+.hero-date{font-size:14px;font-weight:800;color:#fff;padding:8px 14px;border-radius:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);letter-spacing:.5px;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+body.clean .hero-date{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.08)}
+
+/* ===== Liquid Glass 3D — cards, painéis, gráficos ===== */
+body:not(.clean) .panel,body:not(.clean) .kpi{
+  background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 100%),var(--panel);
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 10px 30px -8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.4);
+  backdrop-filter:blur(14px) saturate(160%);
+  -webkit-backdrop-filter:blur(14px) saturate(160%);
+  border-radius:14px;
+}
+body:not(.clean) .sidebar .gc{
+  background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.01) 100%);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  padding:10px 12px 12px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 12px rgba(0,0,0,.25);
+}
+body:not(.clean) .sidebar{
+  background:linear-gradient(180deg,#040819 0%,#05102b 100%);
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.05),4px 0 24px rgba(0,0,0,.45);
+}
+body:not(.clean) .controls{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(14px) saturate(160%);
+  -webkit-backdrop-filter:blur(14px) saturate(160%);
+  box-shadow:0 8px 24px -6px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);
+}
+body.clean .panel,body.clean .kpi,body.clean .controls,body.clean .sidebar .gc{
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(0,0,0,.06);
+  backdrop-filter:blur(18px) saturate(180%);
+  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  box-shadow:0 8px 24px -8px rgba(15,23,42,.14),inset 0 1px 0 rgba(255,255,255,.6);
+  border-radius:14px;
+}
 .chip-presets{display:flex;gap:5px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:transparent;color:var(--txt-dim);border-radius:18px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:600;transition:.15s}
 .chip:hover{color:var(--txt);border-color:#3a4a86}
@@ -85,7 +131,10 @@ body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .tag .x:hover{background:#ef4444;color:#fff}
 
 .body-layout{display:block;min-height:100vh}
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#050c22;border:none;border-right:1px solid rgba(255,255,255,.05);padding:16px 14px;box-shadow:0 4px 20px rgba(0,0,0,.35);color:#e6edff;overflow-y:auto;z-index:5}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#050c22;border:none;border-right:1px solid rgba(255,255,255,.05);padding:16px 14px 20px;box-shadow:0 4px 20px rgba(0,0,0,.35);color:#e6edff;overflow-y:auto;z-index:5}
+.sidebar .gcards{margin-top:28px}
+.gc .gt{display:flex;align-items:center;gap:6px}
+.gc .gt .gi{font-size:12px;filter:grayscale(.15) brightness(1.1)}
 main{margin-left:220px;padding:8px 14px 14px}
 @media(max-width:1100px){.sidebar{position:relative;width:100%;height:auto;min-height:0}main{margin-left:0}}
 body.clean .sidebar{background:#1a2547;color:#f0f4ff}
@@ -123,7 +172,8 @@ body.clean .sidebar .sb-brand img{filter:invert(1)brightness(2);mix-blend-mode:s
 .kpi .unit{font-size:11px;color:var(--txt-dim);font-weight:600}
 .kpi .subs{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
 .kpi .spark{display:block;width:100%;height:118px;margin-top:6px}
-.evo-line .spark{height:150px}
+.evo-line{padding:4px 2px}
+.evo-line .spark{height:170px;display:block;width:100%}
 .col3d-wrap{overflow-x:auto}
 .col3d{display:block;width:100%;height:160px}
 .kpi .sub{display:flex;flex-direction:column}
@@ -235,6 +285,13 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
   <div class="gcards" id="gcards"></div>
 </aside>
 <main>
+<div class="main-hero">
+  <div>
+    <div class="hero-title">Dashboard Pós-Vendas</div>
+    <div class="hero-sub">Painel executivo · Solicitação · Separação · Emissão de NF</div>
+  </div>
+  <div class="hero-date" id="heroDate"></div>
+</div>
 <div class="filterbar no-print" id="filterbar" style="display:none">
   <span class="lbl">Filtros</span><span id="filterTags"></span>
   <span class="mut" id="noFilter"></span>
@@ -307,6 +364,12 @@ footer{margin-top:8px;text-align:center;color:var(--txt-mut);font-size:9px}
   </div>
 
   <div class="panel span12">
+    <h3><span class="hdot dot-sep"></span> Aguardando transferência entre filiais <span class="badge" id="transfCount">—</span></h3>
+    <div class="cap">Itens com status "Aguardando Transferência Filiais" — código SAP e quantidade</div>
+    <div class="bars" id="barTransf"></div>
+  </div>
+
+  <div class="panel span12">
     <h3><span class="hdot dot-sol"></span> Pedidos sem NF <span class="badge" id="tblCount">—</span></h3>
     <div class="cap">Pedidos criados que ainda não possuem nota fiscal — dados completos, sem filtro</div>
     <div class="tblwrap">
@@ -347,7 +410,9 @@ const $=s=>document.querySelector(s);
 function overlay(on,t){$("#overlay").classList.toggle('on',on);if(t)$("#olText").textContent=t;}
 let toT;function toast(m,e){const t=$("#toast");t.textContent=m;t.classList.toggle('err',!!e);t.classList.add('on');clearTimeout(toT);toT=setTimeout(()=>t.classList.remove('on'),e?6000:3000);}
 const nf=n=>(n||0).toLocaleString('pt-BR');
-function parseDate(s){if(!s)return null;s=String(s).trim();if(!s)return null;let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){let y=+m[3];if(y<100)y+=2000;return new Date(y,+m[2]-1,+m[1]);}m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);return null;}
+function parseDate(s){if(!s)return null;s=String(s).trim();if(!s)return null;let d=null;let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){let y=+m[3];if(y<100)y+=2000;d=new Date(y,+m[2]-1,+m[1]);}else{m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)d=new Date(+m[1],+m[2]-1,+m[3]);}
+  if(d){const hoje=new Date();hoje.setHours(23,59,59);if(d.getTime()>hoje.getTime()){d.setFullYear(d.getFullYear()-1);}}
+  return d;}
 const dkey=d=>d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):'';
 const fromInput=v=>{const m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):null;};
 const brDate=d=>d?String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear():'';
@@ -387,10 +452,36 @@ function fmtTime(sec){if(sec==null)return'—';const h=Math.floor(sec/3600),m=Ma
 
 function gvizURL(gid,tq){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}&tq=${encodeURIComponent(tq)}&_=${Date.now()}`;}
 
+function gvizJsonpURL(gid,tq,cbName){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cbName}&gid=${gid}&tq=${encodeURIComponent(tq)}&_=${Date.now()}`;}
+function fetchViaJsonp(gid,tq){
+  return new Promise((resolve,reject)=>{
+    const cb='__gviz_cb_'+Math.random().toString(36).slice(2,10);
+    const s=document.createElement('script');
+    const to=setTimeout(()=>{delete window[cb];s.remove();reject(new Error('timeout'));},25000);
+    window[cb]=(data)=>{clearTimeout(to);try{
+      if(!data||data.status==='error')return reject(new Error(data?.errors?.[0]?.detailed_message||'gviz error'));
+      const rows=[[]];
+      const cols=data.table.cols||[];
+      cols.forEach(c=>rows[0].push(c.label||c.id));
+      (data.table.rows||[]).forEach(r=>{
+        const arr=[];
+        (r.c||[]).forEach(cell=>{
+          if(!cell){arr.push('');return;}
+          if(cell.f)arr.push(cell.f);
+          else if(cell.v!=null)arr.push(String(cell.v));
+          else arr.push('');
+        });
+        rows.push(arr);
+      });
+      resolve(rows);
+    }catch(e){reject(e);}finally{delete window[cb];s.remove();}};
+    s.src=gvizJsonpURL(gid,tq,cb);
+    s.onerror=()=>{clearTimeout(to);delete window[cb];s.remove();reject(new Error('script load failed'));};
+    document.head.appendChild(s);
+  });
+}
 async function fetchSheet(cfg){
-  const res=await fetch(gvizURL(cfg.gid,cfg.tq),{cache:'no-store'});
-  if(!res.ok)throw new Error(cfg.origem+' HTTP '+res.status);
-  const txt=await res.text(),rows=parseCSV(txt);
+  const rows=await fetchViaJsonp(cfg.gid,cfg.tq);
   if(rows.length<2)return[];
   rows.shift();
   const T=v=>(v||'').toString().trim();
@@ -617,7 +708,8 @@ function calcEvoMonthly(){
     if(o.dtSep&&/finaliz/i.test(o.status))add(o.dtSep,'itens');
     if(o.dtEmis&&o.nf)add(o.dtEmis,'nf',o.nf);
   });
-  return Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([k,m])=>{const[y,mo]=k.split('-');return{label:mo+'/'+y,ped:m.ped.size,itens:m.itens,nf:m.nf.size};});
+  const anoAtual=new Date().getFullYear();
+  return Object.entries(map).sort(([a],[b])=>a.localeCompare(b)).map(([k,m])=>{const[y,mo]=k.split('-');return{label:MESES[+mo-1],ano:+y,mes:+mo,ped:m.ped.size,itens:m.itens,nf:m.nf.size};}).filter(m=>m.ano===anoAtual&&(m.ped||m.itens||m.nf));
 }
 
 function calcEvoYearly(){
@@ -634,12 +726,12 @@ function calcEvoYearly(){
 function calcMediaSep10d(){
   const dayMap={};
   RAW.forEach(o=>{
-    if(o.dtSep&&/finaliz/i.test(o.status)){const k=dkey(o.dtSep);dayMap[k]=(dayMap[k]||0)+1;}
+    if(o.dtSep&&/finaliz/i.test(o.status)&&o.ped){const k=dkey(o.dtSep);(dayMap[k]=dayMap[k]||{n:0,d:o.dtSep}).n++;}
   });
   const sorted=Object.entries(dayMap).sort(([a],[b])=>b.localeCompare(a)).slice(0,10);
   if(!sorted.length)return{avg:0,days:[]};
-  const avg=sorted.reduce((a,[,v])=>a+v,0)/sorted.length;
-  return{avg,days:sorted.reverse().map(([k,v])=>({label:k.slice(5).replace('-','/'),value:v}))};
+  const avg=sorted.reduce((a,[,v])=>a+v.n,0)/sorted.length;
+  return{avg,days:sorted.reverse().map(([k,v])=>({label:String(v.d.getDate()).padStart(2,'0')+'/'+MESES_ABBR[v.d.getMonth()],value:v.n}))};
 }
 
 /* ===== SVG EVO CHART ===== */
@@ -693,6 +785,7 @@ function render(){
   const base=RAW.filter(o=>passes(o,null));
   const g=calcGlobal();
   renderGlobal(g);
+  const hoje=new Date();$("#heroDate").textContent=String(hoje.getDate()).padStart(2,'0')+' de '+MESES[hoje.getMonth()]+' de '+hoje.getFullYear();
 
   const pedidos=calcPedidos(base),itens=calcItens(base);
   const pedSepDist=new Set(),nfsEstSet=new Set();let itensFat=0;
@@ -708,8 +801,9 @@ function render(){
   renderBars('#barSep','sep',aggItensBy('sep'),'var(--sep)',6);
   renderBars('#barEmiss','emiss',aggNfsBy('emiss'),'var(--nf)',6);
 
-  renderDonut('#donutStatus','status',aggStatusByPed('status'));
-  renderDonut('#donutNat','nat',aggNfsByNat());
+  renderTransf();
+  renderDonut('#donutStatus','status',aggStatusByPed('status'),'pedidos');
+  renderDonut('#donutNat','nat',aggNfsByNat(),'NF emitidas');
 
   renderFilterTags();
   renderTableSemNF();
@@ -723,21 +817,21 @@ function renderGlobal(g){
     ? '<div class="trat-list">'+g.tratativas.slice(0,4).map(t=>`<div class="trat-item" title="${escA(t)}">• ${escH(t.length>60?t.slice(0,60)+'…':t)}</div>`).join('')+(g.tratativas.length>4?`<div class="trat-item mut">+${g.tratativas.length-4} outras</div>`:'')+'</div>'
     : '<div class="gsub">Nenhuma tratativa registrada</div>';
   $("#gcards").innerHTML=`
-  <div class="gc c-sol"><div class="gt">Total Solicitações</div><div class="gv">${nf(g.totalSol)}</div>
+  <div class="gc c-sol"><div class="gt"><span class="gi">📋</span> Total Solicitações</div><div class="gv">${nf(g.totalSol)}</div>
     <div class="gsub">${pctComNF.toFixed(1)}% com NF</div>${bar(pctComNF)}</div>
-  <div class="gc c-nf"><div class="gt">NFs Emitidas</div><div class="gv">${nf(g.nfsEmit)}</div>
+  <div class="gc c-nf"><div class="gt"><span class="gi">🧾</span> NFs Emitidas</div><div class="gv">${nf(g.nfsEmit)}</div>
     <div class="gsub">${g.melhorMes!=null?`Melhor mês: ${MESES_ABBR[g.melhorMes].toUpperCase()}/${g.anoAtual} (${nf(g.melhorMesQtd)})`:'—'}</div></div>
-  <div class="gc c-sep"><div class="gt">Aguardando Emissão</div><div class="gv">${nf(g.agEmissao)}</div>
+  <div class="gc c-sep"><div class="gt"><span class="gi">⏳</span> Aguardando Emissão</div><div class="gv">${nf(g.agEmissao)}</div>
     <div class="gsub">Backlog atual</div></div>
-  <div class="gc c-red"><div class="gt">NFs Estornadas</div><div class="gv">${nf(g.nfsEst)}</div>
+  <div class="gc c-red"><div class="gt"><span class="gi">↩️</span> NFs Estornadas</div><div class="gv">${nf(g.nfsEst)}</div>
     <div class="gsub">${pctEst.toFixed(1)}% das emitidas</div>${bar(pctEst)}</div>
-  <div class="gc c-orange"><div class="gt">Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div>
+  <div class="gc c-orange"><div class="gt"><span class="gi">⚠️</span> Aguard. Tratativa</div><div class="gv">${nf(g.agTrat)}</div>
     ${tratList}</div>`;
 }
 
 function buildSparkline(data,key,color,titleLabel,periodLabel){
   if(!data.length)return'';
-  const w=300,h=118,padT=14,padB=38,padX=8;
+  const w=320,h=140,padT=28,padB=42,padX=16;
   const vals=data.map(d=>d[key]);
   const max=Math.max(...vals,1);
   const step=data.length>1?(w-padX*2)/(data.length-1):0;
@@ -752,18 +846,33 @@ function buildSparkline(data,key,color,titleLabel,periodLabel){
     if(v>0)labels+=`<text x="${cx.toFixed(1)}" y="${(cy-3).toFixed(1)}" text-anchor="middle" fill="var(--txt)" font-size="${fontSz}" font-weight="700">${nf(v)}</text>`;
     dates+=`<text x="${cx.toFixed(1)}" y="${h-padB+10}" text-anchor="end" fill="var(--txt-dim)" font-size="${dtSz}" transform="rotate(-45 ${cx.toFixed(1)} ${h-padB+10})">${escH(d.label)}</text>`;
   });
-  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const smooth=(pts)=>{if(pts.length<2)return'';let d='M'+pts[0][0].toFixed(1)+','+pts[0][1].toFixed(1);for(let i=1;i<pts.length;i++){const p0=pts[i-1],p1=pts[i];const cx=(p0[0]+p1[0])/2;d+=' C'+cx.toFixed(1)+','+p0[1].toFixed(1)+' '+cx.toFixed(1)+','+p1[1].toFixed(1)+' '+p1[0].toFixed(1)+','+p1[1].toFixed(1);}return d;};
+  const line=smooth(pts);
   const areaY0=h-padB;
   const area=line+` L ${(padX+(data.length-1)*step).toFixed(1)},${areaY0} L ${padX},${areaY0} Z`;
   const total=vals.reduce((a,b)=>a+b,0);
   const header=`Total de ${nf(total)} ${titleLabel} em ${periodLabel||''}`;
-  return`<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+  return`<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
     <path d="${area}" fill="${color}" fill-opacity="0.22"/>
     <path d="${line}" fill="none" stroke="${color}" stroke-width="1.8" opacity="0.95"/>
     ${labels}
     ${dates}
     <text x="${w/2}" y="9" text-anchor="middle" fill="var(--txt-dim)" font-size="8" font-weight="600">${escH(header)}</text>
   </svg>`;
+}
+function renderTransf(){
+  const map={};
+  RAW.forEach(o=>{if(o.ped&&/aguardando.*transfer/i.test(o.status||'')){const k=o.sap||o.ped;(map[k]=map[k]||{sap:o.sap,denom:o.denom,ped:o.ped,cli:o.cli,n:0}).n++;}});
+  const items=Object.values(map).sort((a,b)=>b.n-a.n);
+  $("#transfCount").textContent=nf(items.length)+' itens · '+nf(items.reduce((a,b)=>a+b.n,0))+' linhas';
+  const el=$("#barTransf");
+  if(!items.length){el.innerHTML='<div class="empty">Nenhum item aguardando transferência entre filiais</div>';return;}
+  const max=Math.max(...items.map(i=>i.n));
+  el.innerHTML=items.slice(0,20).map(i=>{
+    const name=escH(i.sap||'—')+(i.denom?' · '+escH(i.denom.slice(0,40)):'')+(i.cli?' · '+escH(i.cli.slice(0,25)):'');
+    return`<div class="bar"><div class="brow"><span class="bname" title="${escA(name)}">${name}</span><span class="bval">${nf(i.n)}</span></div>
+    <div class="track"><div class="fill" style="width:${(i.n/max*100).toFixed(1)}%;background:var(--sep)"></div></div></div>`;
+  }).join('');
 }
 function build3DBars(data,key,color){
   if(!data.length)return'<div class="empty">Sem dados</div>';
@@ -822,13 +931,17 @@ function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst,g){
   if(!partes.length&&maxDate)partes.push(MESES_ABBR[maxDate.getMonth()].toUpperCase(),maxDate.getFullYear());
   const periodLabel=partes.join('/');
   const periodTag=periodLabel?`<div class="period-tag">${periodLabel}</div>`:'';
+  document.querySelectorAll('.panel .period-tag').forEach(t=>t.remove());
+  if(periodLabel){document.querySelectorAll('.panel').forEach(p=>{const t=document.createElement('div');t.className='period-tag';t.textContent=periodLabel;p.appendChild(t);});}
   $("#lineSol").innerHTML=buildSparkline(evo,'ped','var(--sol)','Solicitações',periodLabel);
   $("#lineSep").innerHTML=buildSparkline(evo,'itens','var(--sep)','Separações',periodLabel);
   $("#lineNf").innerHTML=buildSparkline(evo,'nf','var(--nf)','Emissões',periodLabel);
   const monthly=calcEvoMonthly();
-  $("#col3dSol").innerHTML=build3DBars(monthly,'ped','var(--sol)');
-  $("#col3dSep").innerHTML=build3DBars(monthly,'itens','var(--sep)');
-  $("#col3dNf").innerHTML=build3DBars(monthly,'nf','var(--nf)');
+  const anoAtual=new Date().getFullYear();
+  const monthlyThisYear=monthly.filter(m=>{const[mo,y]=m.label.split('/');return +y===anoAtual;}).map(m=>{const[mo,y]=m.label.split('/');return{...m,label:MESES[+mo-1]};});
+  $("#col3dSol").innerHTML=build3DBars(monthlyThisYear.filter(m=>m.ped>0),'ped','var(--sol)');
+  $("#col3dSep").innerHTML=build3DBars(monthlyThisYear.filter(m=>m.itens>0),'itens','var(--sep)');
+  $("#col3dNf").innerHTML=build3DBars(monthlyThisYear.filter(m=>m.nf>0),'nf','var(--nf)');
   const aguardNF=g?(g.totalSol-g.nfsEmit):0;
   const mediaSol=g?g.mediaPedDia:0;
   const tempoMed=g?g.tempoMedio:0;
@@ -870,7 +983,7 @@ function renderBars(sel,dim,data,color,limit){
   el.querySelectorAll('.bar').forEach(b=>b.onclick=()=>toggleFilter(b.dataset.dim,b.dataset.val));
 }
 
-function renderDonut(sel,dim,data){
+function renderDonut(sel,dim,data,centerLabel){
   const el=$(sel);if(!data.length){el.innerHTML='<div class="empty">Sem dados no período</div>';return;}
   const top=data.slice(0,7);if(data.length>7){top.push({label:'Outros',value:data.slice(7).reduce((a,b)=>a+b.value,0),_nc:true});}
   const total=top.reduce((a,b)=>a+b.value,0)||1;const active=filters[dim];
@@ -884,7 +997,7 @@ function renderDonut(sel,dim,data){
       <defs><filter id="${uid}" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.45"/></filter></defs>
       <g filter="url(#${uid})">${segs.map(x=>x.s).join('')}</g>
       <text x="64" y="60" text-anchor="middle" fill="var(--txt)" font-size="20" font-weight="800">${nf(grand)}</text>
-      <text x="64" y="76" text-anchor="middle" fill="var(--txt-mut)" font-size="9">linhas</text></svg>
+      <text x="64" y="76" text-anchor="middle" fill="var(--txt-mut)" font-size="9">${escH(centerLabel||'linhas')}</text></svg>
     <div class="legend">${top.map((d,i)=>{const dm=active.size&&!active.has(d.label)&&!d._nc;
       return`<div class="leg ${dm?'dim':''}" data-dim="${dim}" data-val="${escA(d.label)}" data-nc="${d._nc?1:0}">
         <span class="sw" style="background:${DPAL[i%DPAL.length]}"></span>
