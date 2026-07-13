@@ -54,10 +54,13 @@ body.clean .brand .logo-img{filter:none;mix-blend-mode:multiply}
 .field{display:flex;flex-direction:column;gap:2px}
 .field label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--txt-mut);padding-left:2px;font-weight:700}
 input[type=date],select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 7px;font-size:11px;outline:none;min-height:28px}
-select[multiple]{height:32px;overflow-y:auto;padding:2px 6px;background-image:linear-gradient(45deg,transparent 50%,var(--txt-dim) 50%),linear-gradient(-45deg,transparent 50%,var(--txt-dim) 50%);background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px;background-size:4px 4px,4px 4px;background-repeat:no-repeat;padding-right:22px;appearance:none}
-select[multiple]:focus{height:auto;max-height:180px;background-image:none;padding-right:6px}
-select[multiple] option{padding:3px 5px;border-radius:3px}
-select[multiple] option:checked{background:linear-gradient(90deg,var(--sol),var(--sol)) 0 0/100% 100% no-repeat;color:#111;font-weight:700}
+select[multiple]{height:32px;overflow-y:auto;padding:2px 6px;background-image:linear-gradient(45deg,transparent 50%,var(--txt-dim) 50%),linear-gradient(-45deg,transparent 50%,var(--txt-dim) 50%);background-position:calc(100% - 12px) 14px,calc(100% - 8px) 14px;background-size:4px 4px,4px 4px;background-repeat:no-repeat;padding-right:22px;appearance:none;color:var(--txt);background-color:var(--panel)}
+select[multiple]:focus{height:auto;max-height:200px;background-image:none;padding-right:6px}
+select[multiple] option{padding:4px 6px;border-radius:3px;color:var(--txt);background:var(--panel)}
+body.clean select[multiple] option{color:#1a1a2e;background:#fff}
+select[multiple] option:hover{background:var(--panel2)}
+body.clean select[multiple] option:hover{background:#eef2f7}
+select[multiple] option:checked{background:var(--sol);color:#111;font-weight:700}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7)}
 body.clean input[type=date]::-webkit-calendar-picker-indicator{filter:none}
 .btn{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-weight:600;transition:.15s;white-space:nowrap;min-height:28px}
@@ -106,14 +109,15 @@ body:not(.clean) .controls{
   -webkit-backdrop-filter:blur(14px) saturate(160%);
   box-shadow:0 8px 24px -6px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);
 }
-body.clean .panel,body.clean .kpi,body.clean .controls,body.clean .sidebar .gc{
-  background:rgba(255,255,255,.72);
-  border:1px solid rgba(0,0,0,.06);
-  backdrop-filter:blur(18px) saturate(180%);
-  -webkit-backdrop-filter:blur(18px) saturate(180%);
-  box-shadow:0 8px 24px -8px rgba(15,23,42,.14),inset 0 1px 0 rgba(255,255,255,.6);
-  border-radius:14px;
+body.clean .panel,body.clean .kpi,body.clean .controls{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  box-shadow:0 2px 12px rgba(15,23,42,.05);
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-radius:12px;
 }
+body.clean .sidebar{background:#1a2547}
+body.clean .sidebar .gc{background:transparent;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
 .chip-presets{display:flex;gap:5px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:transparent;color:var(--txt-dim);border-radius:18px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:600;transition:.15s}
 .chip:hover{color:var(--txt);border-color:#3a4a86}
@@ -175,7 +179,7 @@ body.clean .sidebar .sb-brand img{filter:invert(1)brightness(2);mix-blend-mode:s
 .evo-line{padding:4px 2px}
 .evo-line .spark{height:170px;display:block;width:100%}
 .col3d-wrap{overflow-x:auto}
-.col3d{display:block;width:100%;height:160px}
+.col3d{display:block;width:100%;height:230px}
 .kpi .sub{display:flex;flex-direction:column}
 .kpi .sub .v{font-size:13px;font-weight:700}
 .kpi .sub .k{font-size:9px;color:var(--txt-mut)}
@@ -876,13 +880,13 @@ function renderTransf(){
 }
 function build3DBars(data,key,color){
   if(!data.length)return'<div class="empty">Sem dados</div>';
-  const w=340,h=180,padT=20,padB=40,padL=8,padR=8;
+  const w=460,h=220,padT=22,padB=46,padL=10,padR=10;
   const n=data.length;
-  const bw=Math.min(38,(w-padL-padR)/n-6);
+  const bw=Math.min(52,(w-padL-padR)/n-8);
   const gap=((w-padL-padR)-bw*n)/(n+1);
   const vals=data.map(d=>d[key]||0);
   const max=Math.max(...vals,1);
-  const depth=8;
+  const depth=10;
   const uid='c3d'+Math.random().toString(36).slice(2,7);
   let out=`<svg class="col3d" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
   <defs>
@@ -909,8 +913,10 @@ function build3DBars(data,key,color){
     out+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" fill="url(#${uid}f)"/>`;
     // value label
     if(v>0)out+=`<text x="${x+bw/2+depth/2}" y="${y-depth-3}" text-anchor="middle" fill="var(--txt)" font-size="10" font-weight="700">${nf(v)}</text>`;
-    // month label
-    out+=`<text x="${x+bw/2}" y="${h-padB+12}" text-anchor="middle" fill="var(--txt-dim)" font-size="9">${escH(d.label)}</text>`;
+    // month label — rotate if many months
+    const cx=x+bw/2;
+    if(n>6)out+=`<text x="${cx}" y="${h-padB+10}" text-anchor="end" fill="var(--txt-dim)" font-size="10" transform="rotate(-30 ${cx} ${h-padB+10})">${escH(d.label)}</text>`;
+    else out+=`<text x="${cx}" y="${h-padB+14}" text-anchor="middle" fill="var(--txt-dim)" font-size="10">${escH(d.label)}</text>`;
   });
   const total=vals.reduce((a,b)=>a+b,0);
   out+=`<text x="${w/2}" y="11" text-anchor="middle" fill="var(--txt-dim)" font-size="9" font-weight="600">Total ${nf(total)} · ${n} ${n===1?'mês':'meses'}</text>`;
@@ -937,11 +943,9 @@ function renderKPIs(pedidos,itens,pedSep,nfs,itensFat,med,nfsEst,g){
   $("#lineSep").innerHTML=buildSparkline(evo,'itens','var(--sep)','Separações',periodLabel);
   $("#lineNf").innerHTML=buildSparkline(evo,'nf','var(--nf)','Emissões',periodLabel);
   const monthly=calcEvoMonthly();
-  const anoAtual=new Date().getFullYear();
-  const monthlyThisYear=monthly.filter(m=>{const[mo,y]=m.label.split('/');return +y===anoAtual;}).map(m=>{const[mo,y]=m.label.split('/');return{...m,label:MESES[+mo-1]};});
-  $("#col3dSol").innerHTML=build3DBars(monthlyThisYear.filter(m=>m.ped>0),'ped','var(--sol)');
-  $("#col3dSep").innerHTML=build3DBars(monthlyThisYear.filter(m=>m.itens>0),'itens','var(--sep)');
-  $("#col3dNf").innerHTML=build3DBars(monthlyThisYear.filter(m=>m.nf>0),'nf','var(--nf)');
+  $("#col3dSol").innerHTML=build3DBars(monthly.filter(m=>m.ped>0),'ped','var(--sol)');
+  $("#col3dSep").innerHTML=build3DBars(monthly.filter(m=>m.itens>0),'itens','var(--sep)');
+  $("#col3dNf").innerHTML=build3DBars(monthly.filter(m=>m.nf>0),'nf','var(--nf)');
   const aguardNF=g?(g.totalSol-g.nfsEmit):0;
   const mediaSol=g?g.mediaPedDia:0;
   const tempoMed=g?g.tempoMedio:0;
